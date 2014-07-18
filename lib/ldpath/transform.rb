@@ -61,8 +61,10 @@ module Ldpath
     end
 
     class PropertySelector < Struct.new(:property)
-      def evaluate uri, context
-        context.query([uri, property, nil]).each_object
+      def evaluate uris, context
+        Array(uris).map do |uri|
+          context.query([uri, property, nil]).map { |x| x.object }
+        end.flatten
       end
     end
   
@@ -115,6 +117,10 @@ module Ldpath
 
     ## Compound Selectors
     class PathSelector < Struct.new(:left, :right)
+      def evaluate uri, context
+        uris = left.evaluate(uri, context)
+        right.evaluate(uris.to_a, context)
+      end
     end
     
     class UnionSelector < Struct.new(:left, :right)

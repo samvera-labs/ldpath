@@ -27,7 +27,7 @@ module Ldpath
       context ||= RDF::Graph.new
 
       mappings.each do |m|
-        h[m.name] = m.selector.evaluate(uri, context).map { |x| x.object }
+        h[m.name] = m.selector.evaluate(uri, context)
       end
 
       h

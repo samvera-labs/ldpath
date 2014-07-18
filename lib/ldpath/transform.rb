@@ -103,6 +103,21 @@ module Ldpath
     end
     
     class RecursivePathSelector < Struct.new(:property, :repeat)
+      def evaluate uris, context
+        result = []
+        input = Array(uris)
+        
+        Range.new(0,repeat.min,true).each do
+          input = property.evaluate input, context
+        end
+        
+        repeat.each_with_index do |i, idx|
+          break if input.empty? or idx > 25 # we're probably lost..
+          input = property.evaluate input, context
+          result |= input
+        end
+        result.flatten.compact
+      end
     end
     
     rule(range: subtree(:range)) do

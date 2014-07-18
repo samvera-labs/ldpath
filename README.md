@@ -43,7 +43,7 @@ output = program.evaluate uri, context
 - [x] Wildcard selector ("*")
 - [x] Reverse property selector ("^some:property")
 - [ ] String constant selector ("\" \"")
-- [ ] Recursive path selector "(some:property){1,5}"
+- [x] Recursive path selector "(some:property){1,5}"
 - [x] Grouped selector ("(a / b / c)")
 - [x] Union selector ("a | a")
 - [x] Intersection selector ("a & a")

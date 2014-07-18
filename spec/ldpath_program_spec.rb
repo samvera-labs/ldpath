@@ -12,27 +12,36 @@ no_titles = dcterms:title & (dcterms:isPartOf / dcterms:title) & (^dcterms:isPar
 self = . :: xsd:string ;
 wildcard = * ::xsd:string ;
 child_title = ^dcterms:isPartOf / dcterms:title :: xsd:string ;
+recursive = (dcterms:isPartOf)* ;
 EOF
     end
     
+    let(:object) { RDF::URI.new("info:a") }
+    let(:parent) { RDF::URI.new("info:b") }
+    let(:child) { RDF::URI.new("info:c") }
+    let(:grandparent) { RDF::URI.new("info:d") }
+    
+    let(:graph) do
+      RDF::Graph.new
+    end
+    
     it "should work" do
-      uri = RDF::URI.new("info:a")
-      uri_b = RDF::URI.new("info:b")
-      uri_c = RDF::URI.new("info:c")
-      graph = RDF::Graph.new << [uri, RDF::DC.title, "Hello, world!"]
-      graph << [uri, RDF::DC.isPartOf, uri_b]
-      graph << [uri_b, RDF::DC.title, "Parent title"]
-      graph << [uri_c, RDF::DC.isPartOf, uri]
-      graph << [uri_c, RDF::DC.title, "Child title"]
-      result = subject.evaluate uri, graph
+      graph << [object, RDF::DC.title, "Hello, world!"]
+      graph << [object, RDF::DC.isPartOf, parent]
+      graph << [parent, RDF::DC.title, "Parent title"]
+      graph << [child, RDF::DC.isPartOf, object]
+      graph << [child, RDF::DC.title, "Child title"]
+      graph << [parent, RDF::DC.isPartOf, grandparent]
+      result = subject.evaluate object, graph
 
       expect(result["title"]).to match_array "Hello, world!"
       expect(result["parent_title"]).to match_array "Parent title"
-      expect(result["self"]).to match_array(uri)
-      expect(result["wildcard"]).to match_array ["Hello, world!", uri_b]
+      expect(result["self"]).to match_array(object)
+      expect(result["wildcard"]).to match_array ["Hello, world!", parent]
       expect(result["child_title"]).to match_array "Child title"
       expect(result["titles"]).to match_array ["Hello, world!", "Parent title", "Child title"]
       expect(result["no_titles"]).to be_empty
+      expect(result["recursive"]).to match_array [parent, grandparent]
     end
   end
 end

@@ -35,7 +35,7 @@ module Ldpath
     end
     
     rule(prefix: simple(:prefix), localName: simple(:localName)) do
-      prefixes[prefix.to_s][localName]
+      (prefixes[prefix.to_s] || RDF::Vocabulary.new(prefix.to_s))[localName]
     end
     
     # Mappings
@@ -50,7 +50,13 @@ module Ldpath
     
     
     ### Atomic Selectors
-    rule(self: simple(:self)) { "self-selector" }
+    class SelfSelector
+      def evaluate uris, context
+        Array(uris).compact
+      end 
+    end
+
+    rule(self: simple(:self)) { SelfSelector.new }
   
     class FunctionSelector < Struct.new(:fname, :arguments)
       
@@ -64,7 +70,7 @@ module Ldpath
       def evaluate uris, context
         Array(uris).map do |uri|
           context.query([uri, property, nil]).map { |x| x.object }
-        end.flatten
+        end.flatten.compact
       end
     end
   
@@ -73,6 +79,11 @@ module Ldpath
     end
     
     class WildcardSelector
+      def evaluate uris, context
+        Array(uris).map do |uri|
+          context.query([uri, nil, nil]).map { |x| x.object }
+        end.flatten.compact
+      end
     end
     
     rule(wildcard: simple(:wilcard)) do
@@ -80,6 +91,11 @@ module Ldpath
     end
     
     class ReversePropertySelector < Struct.new(:property)
+      def evaluate uris, context
+        Array(uris).map do |uri|
+          context.query([nil, property, uri]).map { |x| x.subject }
+        end.flatten.compact
+      end
     end
     
     rule(reverse_property: simple(:property)) do
@@ -117,16 +133,22 @@ module Ldpath
 
     ## Compound Selectors
     class PathSelector < Struct.new(:left, :right)
-      def evaluate uri, context
-        uris = left.evaluate(uri, context)
-        right.evaluate(uris.to_a, context)
+      def evaluate uris, context
+        output = left.evaluate(uris, context)
+        right.evaluate(output, context)
       end
     end
     
     class UnionSelector < Struct.new(:left, :right)
+      def evaluate uris, context
+        left.evaluate(uris, context) | right.evaluate(uris, context)
+      end
     end
 
-    class IntersectionSelector < Struct.new(:left, :right)
+    class IntersectionSelector < Struct.new(:left, :right)    
+      def evaluate uris, context
+        left.evaluate(uris, context) & right.evaluate(uris, context)
+      end
     end
     
     rule(path: subtree(:path)) do

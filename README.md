@@ -37,18 +37,18 @@ output = program.evaluate uri, context
 
 ## Implementation status
 
-- [] Self selector (".")
-- [] Function selector ("fn:xyz")
+- [x] Self selector (".")
+- [ ] Function selector ("fn:xyz")
 - [x] Property selector ("<info:xyz>")
-- [] Wildcard selector ("*")
-- [] Reverse property selector ("^some:property")
-- [] String constant selector ("\" \"")
-- [] Recursive path selector "(some:property){1,5}"
-- [] Grouped selector ("(a / b / c)")
-- [] Union selector ("a | a")
-- [] Intersection selector ("a & a")
+- [x] Wildcard selector ("*")
+- [x] Reverse property selector ("^some:property")
+- [ ] String constant selector ("\" \"")
+- [ ] Recursive path selector "(some:property){1,5}"
+- [x] Grouped selector ("(a / b / c)")
+- [x] Union selector ("a | a")
+- [x] Intersection selector ("a & a")
 - [x] Path selector ("a / b")
-- [] Testing selectors (".[is-a rdf:Thing]")
+- [ ] Testing selectors (".[is-a rdf:Thing]")
 
 ## Contributing
 

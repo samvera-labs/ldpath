@@ -195,7 +195,7 @@ module Ldpath
     }
     
     rule(:reverse_property_selector) {
-      (wsp? >> inverse >> uri.as(:property) >> wsp?).as(:reverse_property)
+      (wsp? >> inverse >> uri.as(:reverse_property) >> wsp?)
     }
     
     rule(:wildcard_selector) {

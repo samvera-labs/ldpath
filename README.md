@@ -1,6 +1,6 @@
 # Ldpath
 
-TODO: Write a gem description
+This is a ruby implementation of [LDPath](http://marmotta.apache.org/ldpath/language.html), a language for selecting values linked data resources.
 
 ## Installation
 
@@ -18,7 +18,37 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+require 'ldpath'
+
+my_program = <<-EOF
+@prefix dcterms : <http://purl.org/dc/terms/> ;
+title = dcterms:title :: xsd:string ;
+EOF
+
+uri = RDF::URI.new "info:a"
+
+context = RDF::Graph.new << [uri, RDF::DC.title, "Some Title"]
+
+program = Ldpath::Program.parse my_program
+output = program.evaluate uri, context
+# => { ... }
+```
+
+## Implementation status
+
+- [] Self selector (".")
+- [] Function selector ("fn:xyz")
+- [x] Property selector ("<info:xyz>")
+- [] Wildcard selector ("*")
+- [] Reverse property selector ("^some:property")
+- [] String constant selector ("\" \"")
+- [] Recursive path selector "(some:property){1,5}"
+- [] Grouped selector ("(a / b / c)")
+- [] Union selector ("a | a")
+- [] Intersection selector ("a & a")
+- [x] Path selector ("a / b")
+- [] Testing selectors (".[is-a rdf:Thing]")
 
 ## Contributing
 

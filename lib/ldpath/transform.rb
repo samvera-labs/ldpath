@@ -61,6 +61,9 @@ module Ldpath
     end
 
     class PropertySelector < Struct.new(:property)
+      def evaluate uri, context
+        context.query([uri, property, nil]).each_object
+      end
     end
   
     rule(property: simple(:property)) do

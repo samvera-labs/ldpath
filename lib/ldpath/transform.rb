@@ -1,20 +1,22 @@
 module Ldpath
   class Transform < Parslet::Transform
-    
-    def self.default_prefixes
-    @default_prefixes ||= {
-      "rdf"  => RDF::Vocabulary.new("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
-      "rdfs" => RDF::Vocabulary.new("http://www.w3.org/2000/01/rdf-schema#"),
-      "owl"  => RDF::Vocabulary.new("http://www.w3.org/2002/07/owl#"),
-      "skos" => RDF::Vocabulary.new("http://www.w3.org/2004/02/skos/core#"),
-      "dc"   => RDF::Vocabulary.new("http://purl.org/dc/elements/1.1/"),
-      "xsd"  => RDF::Vocabulary.new("http://www.w3.org/2001/XMLSchema#"),#          (LMF base index datatypes/XML Schema)
-      "lmf"  => RDF::Vocabulary.new("http://www.newmedialab.at/lmf/types/1.0/"),#    (LMF extended index datatypes)
-      "fn"   => RDF::Vocabulary.new("http://www.newmedialab.at/lmf/functions/1.0/"),# (LMF index functions)
-      "foaf" => RDF::Vocabulary.new("http://xmlns.com/foaf/0.1/"),
-      "info" => RDF::Vocabulary.new("info:"),
-      "urn" => RDF::Vocabulary.new("urn:"),
-    }
+
+    class << self
+      def default_prefixes
+        @default_prefixes ||= {
+          "rdf"  => RDF::Vocabulary.new("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
+          "rdfs" => RDF::Vocabulary.new("http://www.w3.org/2000/01/rdf-schema#"),
+          "owl"  => RDF::Vocabulary.new("http://www.w3.org/2002/07/owl#"),
+          "skos" => RDF::Vocabulary.new("http://www.w3.org/2004/02/skos/core#"),
+          "dc"   => RDF::Vocabulary.new("http://purl.org/dc/elements/1.1/"),
+          "xsd"  => RDF::Vocabulary.new("http://www.w3.org/2001/XMLSchema#"),#          (LMF base index datatypes/XML Schema)
+          "lmf"  => RDF::Vocabulary.new("http://www.newmedialab.at/lmf/types/1.0/"),#    (LMF extended index datatypes)
+          "fn"   => RDF::Vocabulary.new("http://www.newmedialab.at/lmf/functions/1.0/"),# (LMF index functions)
+          "foaf" => RDF::Vocabulary.new("http://xmlns.com/foaf/0.1/"),
+          "info" => RDF::Vocabulary.new("info:"),
+          "urn" => RDF::Vocabulary.new("urn:"),
+        }
+      end
     end
 
     def apply obj, context = nil
@@ -36,10 +38,8 @@ module Ldpath
     rule(prefix: simple(:prefix), localName: simple(:localName)) do
       (prefixes[prefix.to_s] || RDF::Vocabulary.new(prefix.to_s))[localName]
     end
-    
+
     # Mappings
-    class FieldMapping < Struct.new(:name, :selector, :field_type)
-    end
     
     rule(mapping: subtree(:mapping)) do
       FieldMapping.new mapping[:name].to_s, mapping[:selector], mapping[:field_type]
@@ -49,86 +49,36 @@ module Ldpath
     
     
     ### Atomic Selectors
-    class SelfSelector
-      def evaluate uris, context
-        Array(uris).compact
-      end 
-    end
-
-    rule(self: simple(:self)) { SelfSelector.new }
-  
-    class FunctionSelector < Struct.new(:fname, :arguments)
-      
+    rule(self: simple(:self)) do 
+      SelfSelector.new
     end
 
     rule(fname: simple(:fname), arglist: subtree(:arglist)) do
       FunctionSelector.new fname.to_s, arglist
     end
-
-    class PropertySelector < Struct.new(:property)
-      def evaluate uris, context
-        Array(uris).map do |uri|
-          context.query([uri, property, nil]).map { |x| x.object }
-        end.flatten.compact
-      end
-    end
   
     rule(property: simple(:property)) do
       PropertySelector.new property
     end
-    
-    class WildcardSelector
-      def evaluate uris, context
-        Array(uris).map do |uri|
-          context.query([uri, nil, nil]).map { |x| x.object }
-        end.flatten.compact
-      end
-    end
-    
+
     rule(wildcard: simple(:wilcard)) do
       WildcardSelector.new
     end
-    
-    class ReversePropertySelector < Struct.new(:property)
-      def evaluate uris, context
-        Array(uris).map do |uri|
-          context.query([nil, property, uri]).map { |x| x.subject }
-        end.flatten.compact
-      end
-    end
-    
+
     rule(reverse_property: simple(:property)) do
       ReversePropertySelector.new property
     end
-    
-    class RecursivePathSelector < Struct.new(:property, :repeat)
-      def evaluate uris, context
-        result = []
-        input = Array(uris)
-        
-        Range.new(0,repeat.min,true).each do
-          input = property.evaluate input, context
-        end
-        
-        repeat.each_with_index do |i, idx|
-          break if input.empty? or idx > 25 # we're probably lost..
-          input = property.evaluate input, context
-          result |= input
-        end
-        result.flatten.compact
-      end
-    end
-    
+
     rule(range: subtree(:range)) do
-      range.fetch(:min,0).to_i..range.fetch(:max, 1.0 / 0.0).to_f
+      range.fetch(:min,0).to_i..range.fetch(:max, Infinity).to_f
     end
     
     rule(recursive: subtree(:properties)) do
       repeat = case properties[:repeat]
       when "*"
-        0..(1.0 / 0.0)
+        0..Infinity
       when "+"
-        1..(1.0 / 0.0)
+        1..Infinity
       when Range
         properties[:repeat]
       end
@@ -137,39 +87,16 @@ module Ldpath
     end
   
     ### Test Selectors
-    class TestSelector < Struct.new(:delegate, :test)
-      def evaluate uris, context
-        entries = delegate.evaluate uris, context
-        entries.reject do |uri|
-          test.evaluate(uri, context).empty?
-        end
-      end
-    end
 
     rule(delegate: subtree(:delegate), test: subtree(:test)) do
       TestSelector.new delegate, test
     end
 
-
-    ## Compound Selectors
-    class PathSelector < Struct.new(:left, :right)
-      def evaluate uris, context
-        output = left.evaluate(uris, context)
-        right.evaluate(output, context)
-      end
-    end
-    
-    class UnionSelector < Struct.new(:left, :right)
-      def evaluate uris, context
-        left.evaluate(uris, context) | right.evaluate(uris, context)
-      end
+    rule(lang: simple(:lang)) do
+      LanguageTest.new lang.to_s.to_sym
     end
 
-    class IntersectionSelector < Struct.new(:left, :right)    
-      def evaluate uris, context
-        left.evaluate(uris, context) & right.evaluate(uris, context)
-      end
-    end
+    ### Compound Selectors
     
     rule(path: subtree(:path)) do
       PathSelector.new path[:left], path[:right]
@@ -182,18 +109,8 @@ module Ldpath
     rule(intersection: subtree(:intersection)) do
       IntersectionSelector.new intersection[:left], intersection[:right]
     end
-    
-    class LanguageSelector < Struct.new(:lang)
-      def evaluate uris, context
-        Array(uris).map do |uri|
-          next unless uri.literal?
-          if (lang == "none" && !uri.has_language?) or uri.language == lang 
-            uri 
-          end
-        end.flatten.compact
-      end
-    end
-    rule(lang: simple(:lang)) { LanguageSelector.new lang.to_s.to_sym }
 
- end
+
+    Infinity = 1.0 / 0.0
+  end
 end

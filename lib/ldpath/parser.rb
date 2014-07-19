@@ -7,9 +7,9 @@ module Ldpath
     rule(:line) { expression >> nl_or_eof }
     rule(:newline) {  (str("\n") >> str("\r").maybe).repeat(1) }
     rule(:nl_or_eof) { newline | any.absent? }
-    rule(:expression) { wsp | multiline_comment | namespace | mapping | graph }
+    rule(:expression) { wsp | namespace | mapping | graph }
     
-    rule(:multiline_comment) { wsp? >> (str('/*') >> (str('*/').absent? >> any).repeat >> str('*/') >> wsp?) }
+    rule(:multiline_comment) { (str('/*') >> (str('*/').absent? >> any).repeat >> str('*/') ) }
     
     rule(:int) { match("\\d+") }
     rule(:comma) { str(",") }
@@ -34,7 +34,7 @@ module Ldpath
     rule(:type) { str "^^" }
     rule(:lang) { str "@" }
     
-    rule(:wsp) { (match["\\t "]).repeat(1) }
+    rule(:wsp) { (match["\\t "] | multiline_comment).repeat(1) }
     rule(:wsp?) { wsp.maybe }
     
     # todo: fixme

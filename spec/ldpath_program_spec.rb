@@ -55,4 +55,20 @@ EOF
       expect(result["int_value"]).to match_array 1
     end
   end
+  
+  describe "Data loading" do
+    subject do
+      
+      Ldpath::Program.parse <<-EOF
+@prefix dcterms : <http://purl.org/dc/terms/> ;
+title = foaf:primaryTopic / dc:title :: xsd:string ;
+EOF
+      
+    end
+    
+    it "should work" do
+      result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5.rdf")
+      expect(result["title"]).to match_array "Huw Stephens"
+    end
+  end
 end

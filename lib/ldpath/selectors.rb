@@ -1,9 +1,14 @@
 module Ldpath
   class Selector
-    def evaluate uris, context
+    def evaluate program, uris, context
       Array(uris).map do |uri|
+        loading program, uri, context
         evaluate_one uri, context
       end.flatten.compact
+    end
+    
+    def loading program, uri, context
+      program.loading uri, context
     end
   end
   
@@ -59,17 +64,17 @@ module Ldpath
       @repeat = repeat
     end
     
-    def evaluate uris, context
+    def evaluate program, uris, context
       result = []
       input = Array(uris)
       
       Range.new(0,repeat.min,true).each do
-        input = property.evaluate input, context
+        input = property.evaluate program, input, context
       end
       
       repeat.each_with_index do |i, idx|
         break if input.empty? or idx > 25 # we're probably lost..
-        input = property.evaluate input, context
+        input = property.evaluate program, input, context
         result |= input
       end
       result.flatten.compact
@@ -77,21 +82,21 @@ module Ldpath
   end
   
   class PathSelector < Struct.new(:left, :right)
-    def evaluate uris, context
-      output = left.evaluate(uris, context)
-      right.evaluate(output, context)
+    def evaluate program, uris, context
+      output = left.evaluate(program, uris, context)
+      right.evaluate(program, output, context)
     end
   end
   
   class UnionSelector < Struct.new(:left, :right)
-    def evaluate uris, context
-      left.evaluate(uris, context) | right.evaluate(uris, context)
+    def evaluate program, uris, context
+      left.evaluate(program, uris, context) | right.evaluate(program, uris, context)
     end
   end
 
   class IntersectionSelector < Struct.new(:left, :right)    
-    def evaluate uris, context
-      left.evaluate(uris, context) & right.evaluate(uris, context)
+    def evaluate program, uris, context
+      left.evaluate(program, uris, context) & right.evaluate(program, uris, context)
     end
   end
 

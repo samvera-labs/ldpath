@@ -1,5 +1,5 @@
 require "ldpath/version"
-require 'rdf'
+require 'linkeddata'
 
 module Ldpath
   require 'ldpath/field_mapping'

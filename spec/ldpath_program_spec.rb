@@ -16,6 +16,7 @@ recursive = (dcterms:isPartOf)* ;
 en_description = dcterms:description[@en] ;
 conditional = dcterms:isPartOf[dcterms:title] ;
 conditional_false = dcterms:isPartOf[dcterms:description] ;
+int_value = <info:intProperty> :: xsd:integer ;
 EOF
     end
     
@@ -31,8 +32,9 @@ EOF
     it "should work" do
       graph << [object, RDF::DC.title, "Hello, world!"]
       graph << [object, RDF::DC.isPartOf, parent]
-      graph << [object, RDF::DC.description,  RDF::Literal.new("English!", language: "en")]
-      graph << [object, RDF::DC.description,  RDF::Literal.new("French!", language: "fr")]
+      graph << [object, RDF::DC.description, RDF::Literal.new("English!", language: "en")]
+      graph << [object, RDF::DC.description, RDF::Literal.new("French!", language: "fr")]
+      graph << [object, RDF::URI.new("info:intProperty"), "1"]
       graph << [parent, RDF::DC.title, "Parent title"]
       graph << [child, RDF::DC.isPartOf, object]
       graph << [child, RDF::DC.title, "Child title"]
@@ -50,6 +52,7 @@ EOF
       expect(result["en_description"].first.to_s).to eq "English!"
       expect(result["conditional"]).to match_array parent
       expect(result["conditional_false"]).to be_empty
+      expect(result["int_value"]).to match_array 1
     end
   end
 end

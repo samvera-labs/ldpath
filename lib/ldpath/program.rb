@@ -2,7 +2,8 @@ module Ldpath
   class Program
     class << self
       def parse program
-        ast = transform.apply parser.parse(program)
+        parsed = parser.parse(program)
+        ast = transform.apply parsed
 
         Ldpath::Program.new ast.compact
       end

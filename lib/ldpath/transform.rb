@@ -26,7 +26,6 @@ module Ldpath
     # Core types
     rule(literal: simple(:literal)) { literal.to_s }
     rule(uri: simple(:uri)) { RDF::URI.new(uri) }
-    rule(lang: simple(:lang)) { { lang: lang.to_s } }
     
     # Namespaces
     rule(namespace: subtree(:namespace)) do
@@ -139,6 +138,12 @@ module Ldpath
   
     ### Test Selectors
     class TestSelector < Struct.new(:delegate, :test)
+      def evaluate uris, context
+        entries = delegate.evaluate uris, context
+        entries.reject do |uri|
+          test.evaluate(uri, context).empty?
+        end
+      end
     end
 
     rule(delegate: subtree(:delegate), test: subtree(:test)) do
@@ -177,6 +182,18 @@ module Ldpath
     rule(intersection: subtree(:intersection)) do
       IntersectionSelector.new intersection[:left], intersection[:right]
     end
+    
+    class LanguageSelector < Struct.new(:lang)
+      def evaluate uris, context
+        Array(uris).map do |uri|
+          next unless uri.literal?
+          if (lang == "none" && !uri.has_language?) or uri.language == lang 
+            uri 
+          end
+        end.flatten.compact
+      end
+    end
+    rule(lang: simple(:lang)) { LanguageSelector.new lang.to_s.to_sym }
 
  end
 end

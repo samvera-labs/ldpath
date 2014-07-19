@@ -295,7 +295,7 @@ module Ldpath
         path_selector |
         testing_selector |
         atomic_selector
-      ).as(:path)
+      )
     }
   end
 end

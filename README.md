@@ -48,8 +48,10 @@ output = program.evaluate uri, context
 - [x] Union selector ("a | a")
 - [x] Intersection selector ("a & a")
 - [x] Path selector ("a / b")
-- [ ] Testing selectors (".[is-a rdf:Thing]")
-
+- [?] Testing selectors (".[is-a rdf:Thing]")
+  - [x] language
+  - [x] properties
+  - [ ] other?   
 ## Contributing
 
 1. Fork it ( http://github.com/<my-github-username>/ldpath/fork )

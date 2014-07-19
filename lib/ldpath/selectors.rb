@@ -1,42 +1,64 @@
 module Ldpath
   class Selector
-    
+    def evaluate uris, context
+      Array(uris).map do |uri|
+        evaluate_one uri, context
+      end.flatten.compact
+    end
   end
   
   class SelfSelector < Selector
-    def evaluate uris, context
-      Array(uris).compact
+    def evaluate_one uri, context
+      uri
     end 
   end
   
-  class FunctionSelector < Struct.new(:fname, :arguments)
+  class FunctionSelector < Selector
+    def initialize fname, arguments
+      @fname = fname
+      @arguments = arguments
+    end
+
+    def evaluate_one uri, context
+      # TODO
+    end
+  end
+  
+  class PropertySelector < Selector
+    attr_reader :property
+    def initialize property
+      @property = property
+    end
+
+    def evaluate_one uri, context
+      context.query([uri, property, nil]).map(&:object)
+    end
+  end
+  
+  class WildcardSelector < Selector
+    def evaluate_one uri, context
+      context.query([uri, nil, nil]).map(&:object)
+    end
+  end
+  
+  class ReversePropertySelector < Selector
+    attr_reader :property
+    def initialize property
+      @property = property
+    end
     
-  end
-  class PropertySelector < Struct.new(:property)
-    def evaluate uris, context
-      Array(uris).map do |uri|
-        context.query([uri, property, nil]).map { |x| x.object }
-      end.flatten.compact
+    def evaluate_one uri, context
+      context.query([nil, property, uri]).map(&:subject)
     end
   end
   
-  class WildcardSelector
-    def evaluate uris, context
-      Array(uris).map do |uri|
-        context.query([uri, nil, nil]).map { |x| x.object }
-      end.flatten.compact
+  class RecursivePathSelector < Selector
+    attr_reader :property, :repeat
+    def initialize property, repeat
+      @property = property
+      @repeat = repeat
     end
-  end
-  
-  class ReversePropertySelector < Struct.new(:property)
-    def evaluate uris, context
-      Array(uris).map do |uri|
-        context.query([nil, property, uri]).map { |x| x.subject }
-      end.flatten.compact
-    end
-  end
-  
-  class RecursivePathSelector < Struct.new(:property, :repeat)
+    
     def evaluate uris, context
       result = []
       input = Array(uris)

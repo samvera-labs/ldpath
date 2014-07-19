@@ -8,4 +8,10 @@ module Ldpath
   require 'ldpath/parser'
   require 'ldpath/transform'
   require 'ldpath/program'
+  
+  class << self
+    def evaluate program, uri, context
+      Ldpath::Program.parse(program).evaluate(uri, context)
+    end
+  end
 end

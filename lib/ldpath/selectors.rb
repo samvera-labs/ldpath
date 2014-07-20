@@ -19,13 +19,26 @@ module Ldpath
   end
   
   class FunctionSelector < Selector
+    attr_reader :fname, :arguments
+
     def initialize fname, arguments
       @fname = fname
       @arguments = arguments
     end
-
-    def evaluate_one uri, context
-      # TODO
+    
+    def evaluate program, uris, context
+      Array(uris).map do |uri|
+        loading program, uri, context
+        args = arguments.map do |i|
+          case i
+          when Selector
+            i.evaluate(program, uri, context)
+          else
+            i
+          end
+        end
+        program.func_call fname, uri, context, *arguments
+      end.flatten.compact
     end
   end
   
@@ -81,20 +94,28 @@ module Ldpath
     end
   end
   
-  class PathSelector < Struct.new(:left, :right)
+  class CompoundSelector < Selector
+    attr_reader :left, :right
+    def initialize left, right
+      @left = left
+      @right = right
+    end
+  end
+  
+  class PathSelector < CompoundSelector
     def evaluate program, uris, context
       output = left.evaluate(program, uris, context)
       right.evaluate(program, output, context)
     end
   end
   
-  class UnionSelector < Struct.new(:left, :right)
+  class UnionSelector < CompoundSelector
     def evaluate program, uris, context
       left.evaluate(program, uris, context) | right.evaluate(program, uris, context)
     end
   end
 
-  class IntersectionSelector < Struct.new(:left, :right)    
+  class IntersectionSelector < CompoundSelector    
     def evaluate program, uris, context
       left.evaluate(program, uris, context) & right.evaluate(program, uris, context)
     end

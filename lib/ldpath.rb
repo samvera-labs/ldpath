@@ -8,6 +8,7 @@ module Ldpath
   require 'ldpath/parser'
   require 'ldpath/transform'
   require 'ldpath/program'
+  require 'ldpath/functions'
   
   class << self
     def evaluate program, uri, context

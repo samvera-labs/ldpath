@@ -44,6 +44,10 @@ module Ldpath
 
       h
     end
+    
+    def func_call fname, uri, context, *arguments
+      Functions.new.send(fname, uri, context, *arguments)
+    end
 
   end
 end

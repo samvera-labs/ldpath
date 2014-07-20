@@ -56,6 +56,32 @@ EOF
     end
   end
   
+  describe "functions" do
+    
+      subject do
+        Ldpath::Program.parse <<-EOF
+@prefix dcterms : <http://purl.org/dc/terms/> ;
+title = fn:concat("a", "b") ;
+first_a = fn:first("a", "b") ;
+last_b = fn:last("a", "b") ;
+EOF
+      end
+
+      let(:object) { RDF::URI.new("info:a") }
+      
+      let(:graph) do
+        RDF::Graph.new
+      end
+      
+    it "should work" do
+      result = subject.evaluate object, graph
+      expect(result["title"]).to match_array "ab"
+      expect(result["first_a"]).to match_array "a"
+      expect(result["last_b"]).to match_array "b"
+      
+    end
+  end
+  
   describe "Data loading" do
     subject do
       

@@ -101,7 +101,6 @@ describe Ldpath::Parser do
       end
       
       it "should handle escaped characters" do
-        pending
         subject.strlit.parse '"a\"b"'
       end
     end

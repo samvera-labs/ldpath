@@ -56,7 +56,7 @@ module Ldpath
 
     rule(:strlit) {
       wsp? >> 
-      str('"') >> (str('"').absent? >> any).repeat.as(:literal) >> str('"') >> 
+      str('"') >> (str("\\") >> str("\"") | (str('"').absent? >> any)).repeat.as(:literal) >> str('"') >> 
       wsp?
     }
 

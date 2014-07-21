@@ -16,7 +16,8 @@ recursive = (dcterms:isPartOf)* ;
 en_description = dcterms:description[@en] ;
 conditional = dcterms:isPartOf[dcterms:title] ;
 conditional_false = dcterms:isPartOf[dcterms:description] ;
-int_value = <info:intProperty> :: xsd:integer ;
+int_value = <info:intProperty>[^^xsd:integer] :: xsd:integer ;
+numeric_value = <info:numericProperty> :: xsd:integer ;
 escaped_string = "\\"" :: xsd:string;
 EOF
     end
@@ -35,7 +36,8 @@ EOF
       graph << [object, RDF::DC.isPartOf, parent]
       graph << [object, RDF::DC.description, RDF::Literal.new("English!", language: "en")]
       graph << [object, RDF::DC.description, RDF::Literal.new("French!", language: "fr")]
-      graph << [object, RDF::URI.new("info:intProperty"), "1"]
+      graph << [object, RDF::URI.new("info:intProperty"), 1]
+      graph << [object, RDF::URI.new("info:numericProperty"), "1"]
       graph << [parent, RDF::DC.title, "Parent title"]
       graph << [child, RDF::DC.isPartOf, object]
       graph << [child, RDF::DC.title, "Child title"]
@@ -54,6 +56,7 @@ EOF
       expect(result["conditional"]).to match_array parent
       expect(result["conditional_false"]).to be_empty
       expect(result["int_value"]).to match_array 1
+      expect(result["numeric_value"]).to match_array 1
       expect(result["escaped_string"]).to match_array '\"'
     end
   end

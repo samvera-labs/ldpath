@@ -96,6 +96,10 @@ module Ldpath
       LanguageTest.new lang.to_s.to_sym
     end
 
+    rule(type: simple(:type)) do
+      TypeTest.new type
+    end
+
     ### Compound Selectors
     
     rule(path: subtree(:path)) do

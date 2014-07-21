@@ -31,4 +31,20 @@ module Ldpath
       end.flatten.compact
     end
   end
+
+  class TypeTest < TestSelector
+    attr_reader :type
+    def initialize type
+      @type = type
+    end
+
+    def evaluate program, uris, context
+      Array(uris).map do |uri|
+        next unless uri.literal?
+        if uri.has_datatype? and uri.datatype == type
+          uri
+        end
+      end.flatten.compact
+    end
+  end
 end

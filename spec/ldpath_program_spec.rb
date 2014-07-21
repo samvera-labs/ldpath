@@ -19,6 +19,8 @@ conditional_false = dcterms:isPartOf[dcterms:description] ;
 int_value = <info:intProperty>[^^xsd:integer] :: xsd:integer ;
 numeric_value = <info:numericProperty> :: xsd:integer ;
 escaped_string = "\\"" :: xsd:string;
+and_test = .[dcterms:title & dcterms:gone] ;
+or_test = .[dcterms:title | dcterms:gone] ;
 EOF
     end
     
@@ -37,6 +39,7 @@ EOF
       graph << [object, RDF::DC.description, RDF::Literal.new("English!", language: "en")]
       graph << [object, RDF::DC.description, RDF::Literal.new("French!", language: "fr")]
       graph << [object, RDF::URI.new("info:intProperty"), 1]
+      graph << [object, RDF::URI.new("info:intProperty"), "garbage"]
       graph << [object, RDF::URI.new("info:numericProperty"), "1"]
       graph << [parent, RDF::DC.title, "Parent title"]
       graph << [child, RDF::DC.isPartOf, object]
@@ -58,6 +61,8 @@ EOF
       expect(result["int_value"]).to match_array 1
       expect(result["numeric_value"]).to match_array 1
       expect(result["escaped_string"]).to match_array '\"'
+      expect(result["and_test"]).to be_empty
+      expect(result["or_test"]).to match_array(object)
     end
   end
   

@@ -100,6 +100,22 @@ module Ldpath
       TypeTest.new type
     end
 
+    rule(type: simple(:type)) do
+      TypeTest.new type
+    end
+    
+    rule(not: subtree(:delegate)) do
+      NotTest.new delegate
+    end
+    
+    rule(and: subtree(:op)) do
+      AndTest.new op[:left], op[:right]
+    end
+    
+    rule(or: subtree(:op)) do
+      OrTest.new op[:left], op[:right]
+    end
+
     ### Compound Selectors
     
     rule(path: subtree(:path)) do

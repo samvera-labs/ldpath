@@ -283,7 +283,7 @@ module Ldpath
         wsp? >> 
         not_op >> node_test.as(:delegate) >> 
         wsp?
-      ).as(:not_test)
+      ).as(:not)
     }
     
     rule(:and_test) {
@@ -292,7 +292,7 @@ module Ldpath
         atomic_node_test.as(:left) >> wsp? >> 
         and_op >> wsp? >> 
         node_test.as(:right) >> wsp?
-      ).as(:and_test)
+      ).as(:and)
     }
     
     rule(:or_test) {
@@ -301,7 +301,7 @@ module Ldpath
         atomic_node_test.as(:left) >> wsp? >> 
         or_op >> wsp? >> 
         node_test.as(:right) >> wsp?
-      ).as(:or_test)
+      ).as(:or)
     }
 
     # @en

@@ -1,5 +1,5 @@
 module Ldpath
-  class Functions
+  module Functions
     def concat uri, context, *args
       args.join
     end

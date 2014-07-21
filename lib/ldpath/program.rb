@@ -1,5 +1,8 @@
 module Ldpath
   class Program
+
+    include Ldpath::Functions
+
     class << self
       def parse program, transform_context = {}
         parsed = parser.parse(program)
@@ -46,7 +49,16 @@ module Ldpath
     end
     
     def func_call fname, uri, context, *arguments
-      Functions.new.send(fname, uri, context, *arguments)
+      if function_method? fname
+        public_send(fname, uri, context, *arguments)
+      else
+        raise "No such function: #{fname}"
+      end
+    end
+
+    private
+    def function_method? function
+      Functions.public_instance_methods(false).include? function.to_sym
     end
 
   end

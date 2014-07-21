@@ -5,11 +5,11 @@ module Ldpath
     end
     
     def first uri, context, *args
-      args.compact.first
+      args.flatten.compact.first
     end
     
     def last uri, context, *args
-      args.compact.last
+      args.flatten.compact.last
     end
     
     def eq uri, context, *args
@@ -51,25 +51,29 @@ module Ldpath
     # dates
     
     def earliest uri, context, *args
-      args.min
+      args.flatten.min
     end
     
     def latest uri, context, *args
-      args.max
+      args.flatten.max
     end
     
     # math
     
     def min uri, context, *args
-      args.min
+      args.flatten.min
     end
     
     def max uri, context, *args
-      args.max
+      args.flatten.max
     end
     
     def round uri, context, *args
-      args.map { |n| n.respond_to? :round ? n.round : n }
+      args.map do |n| 
+        Array(n).map do |i|
+          i.respond_to? :round ? i.round : i
+        end
+      end
     end
     
     def sum uri, context, *args
@@ -79,68 +83,61 @@ module Ldpath
     # text
     
     def replace uri, context, str, pattern, replacement
-      str.gsub(Regexp.parse(pattern), replacement)
+      regex = Regexp.parse(pattern)
+      Array(str).map do |x|
+        x.gsub(regex, replacement)
+      end
     end
     
     def strlen uri, context, str
-      str.length
+      Array(str).map { |x| x.length }
     end
     
     def wc uri, context, str
-      str.split.length
+      Array(str).map { |x| x.split.length }
     end
     
     def strLeft uri, context, str, left
-      str[0..left.to_i]
+      Array(str).map { |x| x[0..left.to_i] }
     end
     
     def strRight uri, context, str, right
-      str[right.to_i..str.length]
-      
+      Array(str).map { |x| x[right.to_i..x.length] }
     end
     
     def substr uri, context, str, left, right
-      str[left.to_i..right.to_i]
+      Array(str).map { |x| x[left.to_i..right.to_i] }
     end
     
     def strJoin uri, context, str, sep = "", prefix = "", suffix = ""
-      prefix + str.join(sep) + suffix
+      prefix + Array(str).join(sep) + suffix
     end
     
-    def equals uri, context, *args
-      raise "" unless args.length == 2
-      
-      args[0] == args[1]
+    def equals uri, context, str, other
+      Array(str).map { |x| x == other }
     end
     
-    def equalsIgnoreCase uri, context, *args
-      raise "" unless args.length == 2
-      
-      args[0].downcase == args[1].downcase
+    def equalsIgnoreCase uri, context, str, other
+      Array(str).map { |x| x.downcase == other.downcase }
     end
     
-    def contains uri, context, *args
-      raise "" unless args.length == 2
-      
-      args[0].include? args[1]
+    def contains uri, context, str, substr
+      Array(str).map { |x| x.include? substr }
     end
     
-    def startsWith uri, context, *args
-      raise "" unless args.length == 2
+    def startsWith uri, context, str, suffix
       
-      args[0].start_with? args[1]
+      Array(str).map { |x| x.start_with? suffix }
     end
     
-    def endsWith uri, context, *args
-      raise "" unless args.length == 2
+    def endsWith uri, context, str, suffix
       
-      args[0].end_with? args[1]
+      Array(str).map { |x| x.end_with? suffix }
     end
     
-    def isEmpty uri, context, *args
-      raise "" unless args.length == 1
+    def isEmpty uri, context, str
       
-      args[0].empty?
+      Array(str).map(&:empty?)
     end
   
   end

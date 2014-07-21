@@ -54,7 +54,7 @@ module Ldpath
     end
     
     def evaluate program, uri, context
-      !delegate.evaluate(program, uris, context).any? { |x| x }
+      !Array(delegate.evaluate(program, uri, context)).any? { |x| x }
     end
   end
 
@@ -83,6 +83,20 @@ module Ldpath
     def evaluate program, uri, context
       left.evaluate(program, uri, context).compact.any? &&
          right.evaluate(program, uri, context).compact.any?
+    end
+  end
+  
+  class IsTest < TestSelector
+    
+    attr_reader :left, :right
+    
+    def initialize left, right
+      @left = left
+      @right = right
+    end
+    
+    def evaluate program, uri, context
+      left.evaluate(program, uri, context).compact.include?(right)
     end
   end
 end

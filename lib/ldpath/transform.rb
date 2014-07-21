@@ -104,8 +104,8 @@ module Ldpath
       TypeTest.new type
     end
     
-    rule(not: subtree(:delegate)) do
-      NotTest.new delegate
+    rule(not: subtree(:not_op)) do
+      NotTest.new not_op[:delegate]
     end
     
     rule(and: subtree(:op)) do
@@ -116,6 +116,13 @@ module Ldpath
       OrTest.new op[:left], op[:right]
     end
 
+    rule(is: subtree(:is)) do
+      IsTest.new PropertySelector.new(is[:property]), is[:right]
+    end
+    
+    rule(is_a: subtree(:is_a)) do
+      IsTest.new PropertySelector.new(RDF.type), is_a[:right]
+    end
     ### Compound Selectors
     
     rule(path: subtree(:path)) do

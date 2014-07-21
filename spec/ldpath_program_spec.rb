@@ -21,6 +21,8 @@ numeric_value = <info:numericProperty> :: xsd:integer ;
 escaped_string = "\\"" :: xsd:string;
 and_test = .[dcterms:title & dcterms:gone] ;
 or_test = .[dcterms:title | dcterms:gone] ;
+is_test = .[dcterms:title is "Hello, world!"] ;
+is_not_test = .[!(dcterms:title is "Hello, world!")] ;
 EOF
     end
     
@@ -45,6 +47,7 @@ EOF
       graph << [child, RDF::DC.isPartOf, object]
       graph << [child, RDF::DC.title, "Child title"]
       graph << [parent, RDF::DC.isPartOf, grandparent]
+
       result = subject.evaluate object, graph
 
       expect(result["title"]).to match_array "Hello, world!"
@@ -63,6 +66,8 @@ EOF
       expect(result["escaped_string"]).to match_array '\"'
       expect(result["and_test"]).to be_empty
       expect(result["or_test"]).to match_array(object)
+      expect(result["is_test"]).to match_array(object)
+      expect(result["is_not_test"]).to be_empty
     end
   end
   

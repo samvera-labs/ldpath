@@ -322,7 +322,7 @@ module Ldpath
       (
         wsp? >> 
         is_a >> wsp? >> 
-        node.as(:node) >> 
+        node.as(:right) >> 
         wsp?
       ).as(:is_a)
     }
@@ -330,9 +330,9 @@ module Ldpath
     rule(:path_equality_test) {
       (
         wsp? >>
-        selector.as(:path) >> wsp? >>
+        selector >> wsp? >>
         is >> wsp? >>
-        node.as(:node) >> wsp?
+        node.as(:right) >> wsp?
       ).as(:is)
     }
     

@@ -34,24 +34,7 @@ program = Ldpath::Program.parse my_program
 output = program.evaluate uri, context
 # => { ... }
 ```
-
-## Implementation status
-
-- [x] Self selector (".")
-- [ ] Function selector ("fn:xyz")
-- [x] Property selector ("<info:xyz>")
-- [x] Wildcard selector ("*")
-- [x] Reverse property selector ("^some:property")
-- [ ] String constant selector ("\" \"")
-- [x] Recursive path selector "(some:property){1,5}"
-- [x] Grouped selector ("(a / b / c)")
-- [x] Union selector ("a | a")
-- [x] Intersection selector ("a & a")
-- [x] Path selector ("a / b")
-- [?] Testing selectors (".[is-a rdf:Thing]")
-  - [x] language
-  - [x] properties
-  - [ ] other?   
+ 
 ## Contributing
 
 1. Fork it ( http://github.com/<my-github-username>/ldpath/fork )

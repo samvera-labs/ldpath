@@ -1,6 +1,13 @@
 module Ldpath
   
-  class TestSelector < Struct.new(:delegate, :test)
+  class TestSelector < Selector
+    attr_reader :delegate, :test
+
+    def initialize delegate, test
+      @delegate = delegate
+      @test = test
+    end
+
     def evaluate program, uris, context
       entries = delegate.evaluate program, uris, context
       entries.reject do |uri|
@@ -9,7 +16,12 @@ module Ldpath
     end
   end
 
-  class LanguageTest < Struct.new(:lang)
+  class LanguageTest < TestSelector
+    attr_reader :lang
+    def initialize lang
+      @lang = lang
+    end
+
     def evaluate program, uris, context
       Array(uris).map do |uri|
         next unless uri.literal?

@@ -39,9 +39,14 @@ module Ldpath
       context ||= RDF::Graph.load uri.to_s
 
       mappings.each do |m|
-        h[m.name] = m.selector.evaluate(self, uri, context).map do |x| 
-          next x unless m.field_type
-          RDF::Literal.new(x.to_s, datatype: m.field_type).canonicalize.object
+        h[m.name] = case m.selector
+        when Selector
+          m.selector.evaluate(self, uri, context).map do |x| 
+            next x unless m.field_type
+            RDF::Literal.new(x.to_s, datatype: m.field_type).canonicalize.object
+          end
+        else
+          Array(m.selector)
         end
       end
 

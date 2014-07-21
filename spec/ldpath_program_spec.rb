@@ -17,6 +17,7 @@ en_description = dcterms:description[@en] ;
 conditional = dcterms:isPartOf[dcterms:title] ;
 conditional_false = dcterms:isPartOf[dcterms:description] ;
 int_value = <info:intProperty> :: xsd:integer ;
+escaped_string = "\\"" :: xsd:string;
 EOF
     end
     
@@ -53,6 +54,7 @@ EOF
       expect(result["conditional"]).to match_array parent
       expect(result["conditional_false"]).to be_empty
       expect(result["int_value"]).to match_array 1
+      expect(result["escaped_string"]).to match_array '\"'
     end
   end
   

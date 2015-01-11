@@ -53,6 +53,10 @@ module Ldpath
       SelfSelector.new
     end
 
+    rule(fname: simple(:fname)) do
+      FunctionSelector.new fname.to_s
+    end
+
     rule(fname: simple(:fname), arglist: subtree(:arglist)) do
       FunctionSelector.new fname.to_s, arglist
     end

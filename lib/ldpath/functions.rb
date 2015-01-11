@@ -126,7 +126,6 @@ module Ldpath
     end
     
     def startsWith uri, context, str, suffix
-      
       Array(str).map { |x| x.start_with? suffix }
     end
     
@@ -136,8 +135,11 @@ module Ldpath
     end
     
     def isEmpty uri, context, str
-      
       Array(str).map(&:empty?)
+    end
+
+    def predicates uri, context, *args
+      context.query([uri, nil, nil]).map(&:predicate).uniq
     end
   
   end

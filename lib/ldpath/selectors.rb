@@ -21,9 +21,9 @@ module Ldpath
   class FunctionSelector < Selector
     attr_reader :fname, :arguments
 
-    def initialize fname, arguments
+    def initialize fname, arguments = []
       @fname = fname
-      @arguments = arguments
+      @arguments = Array(arguments)
     end
     
     def evaluate program, uris, context

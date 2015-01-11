@@ -112,4 +112,18 @@ EOF
       expect(result["title"]).to match_array "Huw Stephens"
     end
   end
+
+  describe "Predicate function" do
+    subject do
+      Ldpath::Program.parse <<-EOF
+@prefix dcterms : <http://purl.org/dc/terms/> ;
+predicates = <http://xmlns.com/foaf/0.1/primaryTopic> / fn:predicates() :: xsd:string ;
+EOF
+    end
+
+    it "should work" do
+      result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5.rdf")
+      expect(result["predicates"]).to include "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://purl.org/ontology/po/pid", "http://purl.org/dc/elements/1.1/title"
+    end
+  end
 end

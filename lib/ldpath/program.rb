@@ -22,9 +22,9 @@ module Ldpath
     end
     
     attr_reader :mappings
-    def initialize mappings
+    def initialize mappings, cache = RDF::Util::Cache.new
       @mappings ||= mappings
-      @cache = {}
+      @cache = cache
     end
     
     def loading uri, context

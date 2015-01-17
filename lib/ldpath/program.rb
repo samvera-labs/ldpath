@@ -39,7 +39,8 @@ module Ldpath
       context ||= RDF::Graph.load uri.to_s
 
       mappings.each do |m|
-        h[m.name] = case m.selector
+        h[m.name] ||= []
+        h[m.name] += case m.selector
         when Selector
           m.selector.evaluate(self, uri, context).map do |x| 
             next x unless m.field_type
@@ -50,7 +51,11 @@ module Ldpath
         end
       end
 
-      h
+      h.merge(meta)
+    end
+
+    def meta
+      @meta ||= {}
     end
     
     def func_call fname, uri, context, *arguments

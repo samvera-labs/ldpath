@@ -32,6 +32,7 @@ module Ldpath
     rule(:star) { str("*") }
     rule(:not_op) { str("!") }
     rule(:inverse) { str("^") }
+    rule(:tap) { str("?") }
     rule(:is) { str "is" }
     rule(:is_a) { str "is-a" }
     rule(:func) { str "fn:"}
@@ -142,9 +143,11 @@ module Ldpath
         reverse_property_selector |
         string_constant_selector |
         recursive_path_selector |
-        grouped_selector
+        grouped_selector |
+        tap_selector
       )
     }    
+
 
     rule(:atomic_or_testing_selector) {
       (testing_selector | atomic_selector)
@@ -250,6 +253,15 @@ module Ldpath
       str("(") >> wsp? >> 
       selector >> wsp? >> 
       str(")") >> wsp?
+    }
+
+    rule(:tap_selector) {
+      wsp? >>
+      tap >>
+      str("<") >>
+      identifier.as(:identifier) >>
+      str(">") >>
+      (atomic_selector).as(:tap)
     }
     
     # Testing Selectors

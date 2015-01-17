@@ -89,6 +89,10 @@ module Ldpath
 
       RecursivePathSelector.new properties[:delegate], repeat  
     end
+
+    rule(identifier: simple(:identifier), tap: subtree(:tap)) do
+      TapSelector.new identifier.to_s, tap
+    end
   
     ### Test Selectors
 

@@ -126,4 +126,35 @@ EOF
       expect(result["predicates"]).to include "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://purl.org/ontology/po/pid", "http://purl.org/dc/elements/1.1/title"
     end
   end
+
+  describe "tap selector" do
+    let(:object) { RDF::URI.new("info:a") }
+    let(:child) { RDF::URI.new("info:b") }
+    let(:grandchild) { RDF::URI.new("info:c") }
+    
+    let(:graph) do
+      graph = RDF::Graph.new
+      
+      graph << [object, RDF::DC.title, "Object"]
+      graph << [child, RDF::DC.title, "Child"]
+      graph << [object, RDF::DC.hasPart, child]
+
+      graph
+    end
+    
+    subject do
+      Ldpath::Program.parse <<-EOF
+@prefix dcterms : <http://purl.org/dc/terms/> ;
+title = dcterms:title :: xsd:string ;
+child_title = dcterms:hasPart / dcterms:title :: xsd:string ;
+child_title_with_tap = dcterms:hasPart / ?<tap>fn:predicates() / dcterms:title :: xsd:string ;
+      EOF
+    end
+
+    it "should work" do
+      result = subject.evaluate object, graph
+      expect(result["child_title_with_tap"]).to eq result["child_title"]
+      expect(result["tap"]).to eq ["http://purl.org/dc/terms/title"]
+    end
+  end
 end

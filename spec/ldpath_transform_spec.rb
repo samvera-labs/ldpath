@@ -38,6 +38,10 @@ describe Ldpath::Transform do
     subject.apply parser.parse("xyz = (info:a){2,} ;\n")
   end
   
+  it "should transform tap selectors" do
+    subject.apply parser.parse("xyz = ?<x>info:a ;\n")
+  end
+
   it "should transform namespaces" do
     subject.apply parser.parse("@prefix foaf: <http://xmlns.com/foaf/0.1/>")
   end

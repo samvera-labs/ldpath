@@ -121,4 +121,25 @@ module Ldpath
     end
   end
 
+  class TapSelector < Selector
+    attr_reader :identifier, :tap
+    def initialize identifier, tap
+      @identifier = identifier
+      @tap = tap
+    end
+
+    def evaluate program, uris, context
+      program.meta[identifier] = tap.evaluate(program, uris, context).map { |x| RDF::Literal.new(x.to_s).canonicalize.object }
+
+      Array(uris).map do |uri|
+        loading program, uri, context
+        evaluate_one uri, context
+      end.flatten.compact
+    end
+    
+    def evaluate_one uri, context
+      uri
+    end
+  end
+
 end

@@ -143,6 +143,10 @@ describe Ldpath::Parser do
       it "function_selector" do
         subject.selector.parse('fn:concat(foaf:givename," ",foaf:surname)')
       end
+      
+      it "tap_selector" do
+        subject.selector.parse('?<a><info:a>')
+      end
     end
     
     describe "integration tests" do

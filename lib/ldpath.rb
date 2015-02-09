@@ -1,5 +1,6 @@
 require "ldpath/version"
 require 'linkeddata'
+require 'logger'
 
 module Ldpath
   require 'ldpath/field_mapping'
@@ -13,6 +14,20 @@ module Ldpath
   class << self
     def evaluate program, uri, context
       Ldpath::Program.parse(program).evaluate(uri, context)
+    end
+
+    def logger
+      @logger ||= begin
+        if defined? Rails
+          Rails.logger
+        else
+          Logger.new(STDERR)
+        end
+      end
+    end
+
+    def logger= logger
+      @logger = logger
     end
   end
 end

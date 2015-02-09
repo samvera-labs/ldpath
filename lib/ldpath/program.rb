@@ -29,6 +29,7 @@ module Ldpath
     
     def loading uri, context
       if uri.to_s =~ /^http/ and !context.has_subject?(uri)
+        Ldpath.logger.debug "[#{self.object_id}] Loading #{uri.inspect}"
         @cache[uri] ||= RDF::Graph.load(uri)
         context << @cache[uri]
       end

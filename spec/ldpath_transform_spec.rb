@@ -41,6 +41,11 @@ describe Ldpath::Transform do
   it "should transform tap selectors" do
     subject.apply parser.parse("xyz = ?<x>info:a ;\n")
   end
+  
+  it "should transform loose property selectors" do
+    subject.apply parser.parse("xyz = ~info:a ;\n")
+  end
+
 
   it "should transform namespaces" do
     subject.apply parser.parse("@prefix foaf: <http://xmlns.com/foaf/0.1/>")

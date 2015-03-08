@@ -38,6 +38,7 @@ module Ldpath
     rule(:func) { str "fn:"}
     rule(:type) { str "^^" }
     rule(:lang) { str "@" }
+    rule(:loose) { str("~") }
     
     # todo: fixme
     rule(:uri) do
@@ -139,6 +140,7 @@ module Ldpath
         self_selector |
         function_selector |
         property_selector |
+        loose_property_selector |
         wildcard_selector | 
         reverse_property_selector |
         string_constant_selector |
@@ -209,6 +211,14 @@ module Ldpath
         selector
       ).repeat >>
       wsp?
+    }
+    
+    # xyz
+    rule(:loose_property_selector) {
+      wsp? >> 
+      loose >> 
+      wsp? >> 
+      uri.as(:loose_property) >> wsp?
     }
 
     # xyz

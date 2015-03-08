@@ -53,6 +53,21 @@ module Ldpath
     end
   end
   
+  class LoosePropertySelector < Selector
+    attr_reader :property
+    def initialize property
+      @property = property
+    end
+
+    def evaluate_one uri, context
+      return PropertySelector.new(property).evaluate_one(uri_context) unless defined? RDF::Reasoner
+
+      context.query([uri, nil, nil]).select do |result|
+        result.predicate.entail(:subPropertyOf).include? property
+      end.map(&:object)
+    end
+  end
+  
   class WildcardSelector < Selector
     def evaluate_one uri, context
       context.query([uri, nil, nil]).map(&:object)

@@ -147,6 +147,10 @@ describe Ldpath::Parser do
       it "tap_selector" do
         subject.selector.parse('?<a><info:a>')
       end
+      
+      it "loose_selector" do
+        subject.selector.parse('~<info:a>')
+      end
     end
     
     describe "integration tests" do

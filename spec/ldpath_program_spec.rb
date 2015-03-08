@@ -157,4 +157,34 @@ child_title_with_tap = dcterms:hasPart / ?<tap>fn:predicates() / dcterms:title :
       expect(result["tap"]).to eq ["http://purl.org/dc/terms/title"]
     end
   end
+  
+  describe "loose selector" do
+    let(:object) { RDF::URI.new("info:a") }
+    let(:child) { RDF::URI.new("info:b") }
+    let(:grandchild) { RDF::URI.new("info:c") }
+    
+    let(:graph) do
+      graph = RDF::Graph.new
+      
+      graph << [object, RDF::DC.title, "Object"]
+      graph << [child, RDF::DC.title, "Child"]
+      graph << [object, RDF::DC.hasPart, child]
+
+      graph
+    end
+    
+    subject do
+      Ldpath::Program.parse <<-EOF
+@prefix dcterms : <http://purl.org/dc/terms/> ;
+@prefix dc: <http://purl.org/dc/elements/1.1/> ;
+title = dcterms:title :: xsd:string ;
+title_with_loose =  ~dc:title :: xsd:string ;
+      EOF
+    end
+
+    it "should work" do
+      result = subject.evaluate object, graph
+      expect(result["title_with_loose"]).to eq result["title"]
+    end
+  end
 end

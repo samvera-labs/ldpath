@@ -64,6 +64,10 @@ module Ldpath
     rule(property: simple(:property)) do
       PropertySelector.new property
     end
+    
+    rule(loose_property: simple(:property)) do
+      LoosePropertySelector.new property
+    end
 
     rule(wildcard: simple(:wilcard)) do
       WildcardSelector.new

@@ -21,23 +21,34 @@ module Ldpath
       end
     end
     
-    attr_reader :mappings
+    attr_reader :mappings, :cache, :loaded
     def initialize mappings, cache = RDF::Util::Cache.new
       @mappings ||= mappings
       @cache = cache
+      @loaded = {}
     end
     
     def loading uri, context
-      if uri.to_s =~ /^http/ and !context.has_subject?(uri)
+      if uri.to_s =~ /^http/ and !loaded[uri]
+        context << load_graph(uri)
+      end
+    end
+
+    def load_graph uri
+      cache[uri] ||= begin
         Ldpath.logger.debug "[#{self.object_id}] Loading #{uri.inspect}"
-        @cache[uri] ||= RDF::Graph.load(uri)
-        context << @cache[uri]
+
+        reader_types = RDF::Format.reader_types.reject { |t| t.to_s =~ /html/ }.map do |t|
+          t.to_s =~ /text\/(?:plain|html)/  ? "#{t};q=0.5" : t
+        end
+
+        RDF::Graph.load(uri, headers: { 'Accept' => reader_types.join(", ") }).tap { loaded[uri] = true }
       end
     end
 
     def evaluate uri, context = nil
       h = {}
-      context ||= RDF::Graph.load uri.to_s
+      context ||= load_graph(uri.to_s)
 
       mappings.each do |m|
         h[m.name] ||= []

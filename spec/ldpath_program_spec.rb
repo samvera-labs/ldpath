@@ -76,7 +76,8 @@ EOF
       subject do
         Ldpath::Program.parse <<-EOF
 @prefix dcterms : <http://purl.org/dc/terms/> ;
-title = fn:concat("a", "b") ;
+ab = fn:concat("a", "b") ;
+title = fn:concat(dcterms:title, dcterms:description) ;
 first_a = fn:first("a", "b") ;
 last_b = fn:last("a", "b") ;
 EOF
@@ -85,15 +86,19 @@ EOF
       let(:object) { RDF::URI.new("info:a") }
       
       let(:graph) do
-        RDF::Graph.new
+        graph = RDF::Graph.new
+        graph << [object, RDF::DC.title, "Hello, world!"]
+        graph << [object, RDF::DC.description, "Description"]
+
+        graph
       end
       
     it "should work" do
       result = subject.evaluate object, graph
-      expect(result["title"]).to match_array "ab"
+      expect(result["ab"]).to match_array "ab"
+      expect(result["title"]).to match_array "Hello, world!Description"
       expect(result["first_a"]).to match_array "a"
       expect(result["last_b"]).to match_array "b"
-      
     end
   end
   

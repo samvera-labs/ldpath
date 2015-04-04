@@ -133,7 +133,7 @@ describe Ldpath::Parser do
       end
       
       it "should parse path mappings" do
-        subject.parse("xyz = info:a / info:b :: a:b;\n")
+        subject.mapping.parse("xyz = info:a / info:b :: a:b;")
       end
       
       it "recursive_path_selector" do
@@ -163,7 +163,7 @@ describe Ldpath::Parser do
       end
       
       it "should parse the namespaces.ldpath" do
-        subject.parse File.read(File.expand_path(File.join(__FILE__, "..", "fixtures", "namespaces.ldpath")))
+        subject.parse_with_debug File.read(File.expand_path(File.join(__FILE__, "..", "fixtures", "namespaces.ldpath")))
       end
     end  
   end

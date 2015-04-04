@@ -4,11 +4,17 @@ module Ldpath
   class Parser < Parslet::Parser
     root :lines
     rule(:lines) { line.repeat }
-    rule(:line) { expression >> wsp? >> (newline | eof) }
+    rule(:line) { ((wsp >> expression) | expression) >> space_not_newline? >> (newline | eof) }
 
     rule(:newline) {  (str("\n") >> str("\r").maybe).repeat(1) }
     rule(:eof) { any.absent? }
-    rule(:wsp) { (match["\\t "] | multiline_comment).repeat(1) }
+
+    rule(:space) { match('\s').repeat(1) }
+    rule(:spaces?) { space.maybe }
+    rule(:space_not_newline) { str("\n").absent? >> space }
+    rule(:space_not_newline?) { space_not_newline.maybe }
+
+    rule(:wsp) { (space | multiline_comment).repeat(1) }
     rule(:wsp?) { wsp.maybe }
     rule(:multiline_comment) { (str('/*') >> (str('*/').absent? >> any).repeat >> str('*/') ) }
 
@@ -57,9 +63,7 @@ module Ldpath
     rule(:identifier) { match["a-zA-Z0-9_"] >> (match["a-zA-Z0-9_'\\.-"]).repeat }
 
     rule(:strlit) {
-      wsp? >> 
-      str('"') >> (str("\\") >> str("\"") | (str('"').absent? >> any)).repeat.as(:literal) >> str('"') >> 
-      wsp?
+      str('"') >> (str("\\") >> str("\"") | (str('"').absent? >> any)).repeat.as(:literal) >> str('"')
     }
 
     rule(:node) {
@@ -69,24 +73,20 @@ module Ldpath
     # @prefix id = uri ;
     rule(:namespace) { 
       (
-      wsp? >>
       k_prefix >> wsp? >>
       identifier.as(:id) >> wsp? >>
       colon >> wsp? >>
-      uri.as(:uri) >> wsp? >>
-      scolon.maybe >> wsp?
+      uri.as(:uri) >> space_not_newline? >> scolon.maybe
       ).as(:namespace)
     }
     
     # @graph uri, uri, uri ;
     rule(:graph) {
       k_graph >> wsp? >> 
-      uri_list.as(:graphs) >> wsp? >> 
-      scolon
+      uri_list.as(:graphs) >> wsp? >> scolon
     }
     
     rule(:uri_list) {
-      wsp? >> 
       uri.as(:uri) >>
       (
         wsp? >> 
@@ -100,12 +100,11 @@ module Ldpath
       (
         identifier.as(:name) >> wsp? >>
         assign >> wsp? >>
-        selector.as(:selector) >> wsp? >>
-        (
+        selector.as(:selector) >>
+        ( wsp? >> 
           dcolon >> wsp? >>
           uri.as(:field_type)
-        ).maybe >> wsp? >>
-        scolon
+        ).maybe >> wsp? >> scolon
       ).as(:mapping)
     }
 
@@ -128,11 +127,10 @@ module Ldpath
     }
     
     rule(:testing_selector) {
-      wsp? >>
       atomic_selector.as(:delegate) >>
       str("[") >> wsp? >>
       node_test.as(:test) >> wsp? >>
-      str("]") >> wsp?
+      str("]")
     }
 
     rule(:atomic_selector) {
@@ -163,80 +161,70 @@ module Ldpath
     ## x / y
     rule(:path_selector) {
       (
-        wsp? >>
         atomic_or_testing_selector.as(:left) >> wsp? >>
         p_sep >> wsp? >>
-        atomic_or_testing_or_path_selector.as(:right) >> wsp?
+        atomic_or_testing_or_path_selector.as(:right)
       ).as(:path)
     }
     
     ## x & y
     rule(:intersection_selector) {
       (
-        wsp? >>
         atomic_or_testing_or_path_selector.as(:left) >> wsp? >>
         and_op >> wsp? >>
-        selector.as(:right) >> wsp?
+        selector.as(:right)
       ).as(:intersection)
     }
     
     ## x | y
     rule(:union_selector) {
       (
-        wsp? >>
         atomic_or_testing_or_path_selector.as(:left) >> wsp? >>
         or_op >> wsp? >>
-        selector.as(:right) >> wsp?
+        selector.as(:right)
       ).as(:union)
     }
 
     # Atomic Selectors
     rule(:self_selector) {
-      wsp? >> 
-      self_op.as(:self) >> wsp?
+      self_op.as(:self)
     }
     
     # fn:x() or fn:x(1,2,3)
     rule(:function_selector) {
       func >> identifier.as(:fname) >> str("()") |
-      func >> identifier.as(:fname) >> str("(") >> arglist.as(:arglist) >> str(")")
+      func >> identifier.as(:fname) >> str("(") >> wsp? >> arglist.as(:arglist) >> wsp? >> str(")")
     }
     
     rule(:arglist) {
-      wsp? >>
       selector >> 
       (
         wsp? >> 
         comma >> wsp? >> 
         selector
-      ).repeat >>
-      wsp?
+      ).repeat
     }
     
     # xyz
     rule(:loose_property_selector) {
-      wsp? >> 
       loose >> 
       wsp? >> 
-      uri.as(:loose_property) >> wsp?
+      uri.as(:loose_property)
     }
 
     # xyz
     rule(:property_selector) {
-      wsp? >> 
-      uri.as(:property) >> wsp?
+      uri.as(:property)
     }
 
     # *
     rule(:wildcard_selector) {
-      wsp? >> 
-      star.as(:wildcard) >> wsp?
+      star.as(:wildcard)
     }
 
     # ^xyz
     rule(:reverse_property_selector) {
-      wsp? >> 
-      inverse >> uri.as(:reverse_property) >> wsp?
+      inverse >> uri.as(:reverse_property)
     }
     
     rule(:string_constant_selector) {
@@ -246,7 +234,6 @@ module Ldpath
     # (x)*
     rule(:recursive_path_selector) {
       (
-        wsp? >> 
         str("(") >> wsp? >>
         selector.as(:delegate) >> wsp? >> 
         str(")") >>
@@ -254,23 +241,21 @@ module Ldpath
           star |
           plus |
           (str("{") >> wsp? >> int.as(:min).maybe >> wsp? >>str(",") >> wsp? >> int.as(:max).maybe >> wsp? >>str("}") ).as(:range)
-        ).as(:repeat) >> wsp?
+        ).as(:repeat)
       ).as(:recursive)
     }
     
     rule(:grouped_selector) {
-      wsp? >>
       str("(") >> wsp? >> 
       selector >> wsp? >> 
-      str(")") >> wsp?
+      str(")")
     }
 
     rule(:tap_selector) {
-      wsp? >>
       tap >>
-      str("<") >>
-      identifier.as(:identifier) >>
-      str(">") >>
+      str("<") >> wsp? >>
+      identifier.as(:identifier) >> wsp? >>
+      str(">") >> wsp? >>
       (atomic_selector).as(:tap)
     }
     
@@ -294,78 +279,67 @@ module Ldpath
     }
 
     rule(:grouped_test) {
-      wsp? >> 
       str("(")  >> wsp? >> 
       node_test >> wsp? >> 
-      str(")")  >> wsp?
+      str(")") 
     }
     
     rule(:not_test) {
       (
-        wsp? >> 
-        not_op >> node_test.as(:delegate) >> 
-        wsp?
+        not_op >> node_test.as(:delegate)
       ).as(:not)
     }
     
     rule(:and_test) {
       (
-        wsp? >> 
         atomic_node_test.as(:left) >> wsp? >> 
         and_op >> wsp? >> 
-        node_test.as(:right) >> wsp?
+        node_test.as(:right)
       ).as(:and)
     }
     
     rule(:or_test) {
       (
-        wsp? >> 
         atomic_node_test.as(:left) >> wsp? >> 
         or_op >> wsp? >> 
-        node_test.as(:right) >> wsp?
+        node_test.as(:right)
       ).as(:or)
     }
 
     # @en
     rule(:literal_language_test) {
-      wsp? >> 
-      lang >> identifier.as(:lang) >> 
-      wsp?
+      lang >> identifier.as(:lang)
     }
     
     # ^^xyz
     rule(:literal_type_test) {
-      wsp? >> 
-      type >> uri.as(:type) >> 
-      wsp?
+      type >> uri.as(:type)
     }
     
     rule(:is_a_test) {
       (
-        wsp? >> 
         is_a >> wsp? >> 
-        node.as(:right) >> 
-        wsp?
+        node.as(:right)
       ).as(:is_a)
     }
     
     rule(:path_equality_test) {
       (
-        wsp? >>
         selector >> wsp? >>
         is >> wsp? >>
-        node.as(:right) >> wsp?
+        node.as(:right)
       ).as(:is)
     }
     
     rule(:function_test) {
-      wsp? >>
       (
       func >> identifier.as(:fname) >> str("()") |
       func >> identifier.as(:fname) >> str("(") >>
+        wsp? >> 
           arglist.as(:arglist) >>
+        wsp? >> 
       str(")")
-      ) >> wsp?
+      )
     }
 
     rule(:path_test) {

@@ -89,6 +89,7 @@ count_still_3 = fn:count(dcterms:hasPart, dcterms:genre);
 eq_true = fn:eq("a", "a");
 eq_false = fn:eq("a", "b");
 eq_node_true = fn:eq(dcterms:description, "Description");
+xpath_test = fn:xpath("//title", "<root><title>xyz</title></root>");
 EOF
     end
 
@@ -172,6 +173,12 @@ EOF
 
       it "checks node values" do
         expect(subject).to include "eq_node_true" => [true]
+      end
+    end
+
+    describe "xpath" do
+      it "evaluates xpath queries against the string contents" do
+        expect(subject).to include "xpath_test" => ["xyz"]
       end
     end
   end

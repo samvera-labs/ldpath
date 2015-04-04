@@ -37,7 +37,7 @@ module Ldpath
             i
           end
         end
-        program.func_call fname, uri, context, args
+        program.func_call fname, uri, context, *args
       end.flatten.compact
     end
   end

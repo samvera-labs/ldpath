@@ -168,6 +168,13 @@ module Ldpath
     def predicates uri, context, *args
       context.query([uri, nil, nil]).map(&:predicate).uniq
     end
+
+    def xpath uri, context, xpath, node
+      x = Array(xpath).flatten.first
+      Array(node).flatten.compact.map do |n|
+        Nokogiri::XML(n).xpath(x, prefixes.map { |k,v| [k, v.to_s] }).map(&:text)
+      end
+    end
   
   end
 end

@@ -8,7 +8,7 @@ module Ldpath
         parsed = parser.parse(program)
         ast = transform.apply parsed, transform_context
 
-        Ldpath::Program.new ast.compact
+        Ldpath::Program.new ast.compact, prefixes: transform_context[:prefixes]
       end
 
       private
@@ -21,10 +21,12 @@ module Ldpath
       end
     end
     
-    attr_reader :mappings, :cache, :loaded
-    def initialize mappings, cache = RDF::Util::Cache.new
+    attr_reader :mappings, :cache, :loaded, :prefixes
+    def initialize mappings, options = {}
+
       @mappings ||= mappings
-      @cache = cache
+      @cache = options[:cache] || RDF::Util::Cache.new
+      @prefixes = options[:prefixes] || {}
       @loaded = {}
     end
     

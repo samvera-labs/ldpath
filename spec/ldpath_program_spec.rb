@@ -273,4 +273,42 @@ title_with_loose =  ~dc:title :: xsd:string ;
       expect(result["title_with_loose"]).to eq result["title"]
     end
   end
+
+  describe "filter" do
+    
+    subject do
+      Ldpath::Program.parse <<-EOF
+    @prefix dcterms : <http://purl.org/dc/terms/> ;
+    @prefix dc: <http://purl.org/dc/elements/1.1/> ;
+    @filter is-a dcterms:Agent ;
+    title = dcterms:title :: xsd:string ;
+      EOF
+    end
+
+    let(:object) { RDF::URI.new("info:a") }
+    let(:other_object) { RDF::URI.new("info:b") }
+    
+    
+    let(:graph) do
+      graph = RDF::Graph.new
+      
+      graph << [object, RDF.type, RDF::DC.Agent]
+      graph << [object, RDF::DC.title, "Title"]
+      graph << [other_object, RDF::DC.title, "Other Title"]
+
+      graph
+    end
+    
+    it "should work" do
+      result = subject.evaluate object, graph
+      expect(result["title"]).to eq ["Title"]
+    end
+    
+    it "filters objects that don't match" do
+      result = subject.evaluate other_object, graph
+      expect(result).to be_empty
+    end
+
+
+  end
 end

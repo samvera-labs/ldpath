@@ -8,7 +8,7 @@ module Ldpath
         parsed = parser.parse(program)
         ast = transform.apply parsed, transform_context
 
-        Ldpath::Program.new ast.compact, prefixes: transform_context[:prefixes]
+        Ldpath::Program.new ast.compact, transform_context
       end
 
       private
@@ -21,12 +21,13 @@ module Ldpath
       end
     end
     
-    attr_reader :mappings, :cache, :loaded, :prefixes
+    attr_reader :mappings, :cache, :loaded, :prefixes, :filters
     def initialize mappings, options = {}
 
       @mappings ||= mappings
       @cache = options[:cache] || RDF::Util::Cache.new
       @prefixes = options[:prefixes] || {}
+      @filters = options[:filters] || []
       @loaded = {}
     end
     
@@ -51,6 +52,10 @@ module Ldpath
     def evaluate uri, context = nil
       h = {}
       context ||= load_graph(uri.to_s)
+
+      unless filters.empty?
+        return h unless filters.all? { |f| f.evaluate(self, uri, context) }
+      end
 
       mappings.each do |m|
         h[m.name] ||= []

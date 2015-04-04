@@ -64,6 +64,11 @@ describe Ldpath::Parser do
         subject.expression.parse "@graph test:context, foo:ctx, test:bar ;"
       end
       
+
+      it "may be a filter" do
+        subject.expression.parse "@filter is-a test:Context ;"
+      end
+      
       it "may be a mapping" do
         subject.expression.parse "id = . ;"
       end

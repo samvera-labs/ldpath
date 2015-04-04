@@ -21,6 +21,7 @@ module Ldpath
 
     def apply obj, context = nil
       context ||= { }
+      context[:filters] ||= []
       context[:prefixes] ||= {}.merge(self.class.default_prefixes)
       super obj, context
     end
@@ -38,6 +39,13 @@ module Ldpath
     rule(prefix: simple(:prefix), localName: simple(:localName)) do
       (prefixes[prefix.to_s] || RDF::Vocabulary.new(prefix.to_s))[localName]
     end
+
+    
+    rule(filter: subtree(:filter)) do
+      filters << filter[:test]
+      nil
+    end
+
 
     # Mappings
     

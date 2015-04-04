@@ -1,7 +1,7 @@
 module Ldpath
   module Functions
     def concat uri, context, *args
-      args.join
+      args.flatten.compact.join
     end
     
     def first uri, context, *args
@@ -11,29 +11,57 @@ module Ldpath
     def last uri, context, *args
       args.flatten.compact.last
     end
+
+    def count uri, context, *args
+      args.flatten.compact.length
+    end
     
     def eq uri, context, *args
-      
+      a, b, *rem = args.flatten
+      unless rem.empty?
+        raise "Too many arguments to fn:eq"
+      end
+      a == b
     end
     
     def ne uri, context, *args
-      
+      a, b, *rem = args.flatten
+      unless rem.empty?
+        raise "Too many arguments to fn:ne"
+      end
+      a != b
     end
     
     def lt uri, context, *args
-      
+      a, b, *rem = args.flatten
+      unless rem.empty?
+        raise "Too many arguments to fn:lt"
+      end
+      a < b
     end
     
     def le uri, context, *args
-      
+      a, b, *rem = args.flatten
+      unless rem.empty?
+        raise "Too many arguments to fn:le"
+      end
+      a <= b
     end
     
     def gt uri, context, *args
-      
+      a, b, *rem = args.flatten
+      unless rem.empty?
+        raise "Too many arguments to fn:gt"
+      end
+      a > b
     end
     
     def ge uri, context, *args
-      
+      a, b, *rem = args.flatten
+      unless rem.empty?
+        raise "Too many arguments to fn:ge"
+      end
+      a >= b
     end
     
     # collections
@@ -130,7 +158,6 @@ module Ldpath
     end
     
     def endsWith uri, context, str, suffix
-      
       Array(str).map { |x| x.end_with? suffix }
     end
     

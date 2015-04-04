@@ -72,33 +72,107 @@ EOF
   end
   
   describe "functions" do
-    
-      subject do
-        Ldpath::Program.parse <<-EOF
+    let(:program) do
+      Ldpath::Program.parse <<-EOF
 @prefix dcterms : <http://purl.org/dc/terms/> ;
 ab = fn:concat("a", "b") ;
 title = fn:concat(dcterms:title, dcterms:description) ;
+title_mix = fn:concat("!", dcterms:title) ;
+title_missing = fn:concat("z", dcterms:genre) ;
 first_a = fn:first("a", "b") ;
+first_b = fn:first(dcterms:genre, "b") ;
+last_a = fn:last("a", dcterms:genre) ;
 last_b = fn:last("a", "b") ;
+count_5 = fn:count("a", "b", "c", "d", "e");
+count_3 = fn:count(dcterms:hasPart);
+count_still_3 = fn:count(dcterms:hasPart, dcterms:genre);
+eq_true = fn:eq("a", "a");
+eq_false = fn:eq("a", "b");
+eq_node_true = fn:eq(dcterms:description, "Description");
 EOF
+    end
+
+    let(:object) { RDF::URI.new("info:a") }
+    
+    let(:graph) do
+      graph = RDF::Graph.new
+      graph << [object, RDF::DC.title, "Hello, world!"]
+      graph << [object, RDF::DC.description, "Description"]
+      graph << [object, RDF::DC.hasPart, "a"]
+      graph << [object, RDF::DC.hasPart, "b"]
+      graph << [object, RDF::DC.hasPart, "c"]
+
+      graph
+    end
+
+    subject do
+      program.evaluate object, graph
+    end
+
+    describe "concat" do
+      it "should concatenate simple string arguments" do
+        expect(subject).to include "ab" => ["ab"]
       end
 
-      let(:object) { RDF::URI.new("info:a") }
-      
-      let(:graph) do
-        graph = RDF::Graph.new
-        graph << [object, RDF::DC.title, "Hello, world!"]
-        graph << [object, RDF::DC.description, "Description"]
-
-        graph
+      it "should concatenate node values" do
+        expect(subject).to include "title" => ["Hello, world!Description"]
       end
-      
-    it "should work" do
-      result = subject.evaluate object, graph
-      expect(result["ab"]).to match_array "ab"
-      expect(result["title"]).to match_array "Hello, world!Description"
-      expect(result["first_a"]).to match_array "a"
-      expect(result["last_b"]).to match_array "b"
+
+      it "should allow a mixture of string and node values" do
+        expect(subject).to include "title_mix" => ["!Hello, world!"]
+      end
+
+      it "should ignore missing node values" do
+        expect(subject).to include "title_missing" => ["z"]
+      end
+    end
+
+    describe "first" do
+      it "should take the first value" do
+        expect(subject).to include "first_a" => ["a"]
+      end
+
+      it "should skip missing values" do
+        expect(subject).to include "first_b" => ["b"]
+      end
+    end
+    
+    describe "last" do
+      it "should take the last value" do
+        expect(subject).to include "last_b" => ["b"]
+      end
+
+      it "should skip missing values" do
+        expect(subject).to include "last_a" => ["a"]
+      end
+    end
+
+    describe "count" do
+      it "should return the number of arguments" do
+        expect(subject).to include "count_5" => [5]
+      end
+
+      it "should count the number of values for nodes" do
+        expect(subject).to include "count_3" => [3]
+      end
+
+      it "should skip missing nodes" do
+        expect(subject).to include "count_still_3" => [3]
+      end
+    end
+
+    describe "eq" do
+      it "checks if the arguments match" do
+        expect(subject).to include "eq_true" => [true]
+      end
+
+      it "checks if the arguments fail to match" do
+        expect(subject).to include "eq_false" => [false]
+      end
+
+      it "checks node values" do
+        expect(subject).to include "eq_node_true" => [true]
+      end
     end
   end
   

@@ -110,17 +110,27 @@ module Ldpath
     # id = . ;
     rule(:mapping) {
       (
-        identifier.as(:name) >> wsp? >>
+        (uri_in_brackets | prefix_and_localname | identifier).as(:name) >> wsp? >>
         assign >> wsp? >>
         selector.as(:selector) >>
         ( wsp? >> 
-          dcolon >> wsp? >>
-          uri.as(:field_type)
+          dcolon >> wsp? >> field_type
         ).maybe >> wsp? >> scolon
       ).as(:mapping)
     }
 
+    rule(:field_type) {
+      uri.as(:field_type) >> field_type_options.maybe
+    }
 
+    rule(:field_type_options) {
+      str("(") >> wsp? >> (field_type_option >> (wsp? >> comma >> wsp? >> field_type_option).repeat).as(:options) >> wsp? >> str(")")
+    }
+
+    rule(:field_type_option) {
+      identifier.as(:key) >> wsp? >> assign >> wsp? >> strlit.as(:value)
+    }
+    
     # selector groups
     rule(:selector) {
       (

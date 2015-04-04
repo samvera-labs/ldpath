@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Chris Beer"]
   spec.email         = ["cabeer@stanford.edu"]
   spec.summary       = %q{Ruby implementation of LDPath}
-  spec.homepage      = "http://github.com/cbeer"
+  spec.homepage      = "https://github.com/cbeer/ldpath.rb"
   spec.license       = "Apache 2"
 
   spec.files         = `git ls-files -z`.split("\x0")

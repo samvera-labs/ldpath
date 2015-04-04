@@ -18,7 +18,7 @@ module Ldpath
     rule(:wsp?) { wsp.maybe }
     rule(:multiline_comment) { (str('/*') >> (str('*/').absent? >> any).repeat >> str('*/') ) }
 
-    rule(:expression) { wsp | namespace | mapping | graph | filter }
+    rule(:expression) { wsp | namespace | mapping | graph | filter | boost }
     
     rule(:int) { match("\\d+") }
     
@@ -30,6 +30,7 @@ module Ldpath
     rule(:k_prefix) { str("@prefix")}
     rule(:k_graph) { str("@graph")}
     rule(:k_filter) { str("@filter")}
+    rule(:k_boost) { str("@boost")}
     
     rule(:self_op) { str(".") }
     rule(:and_op) { str("&") }
@@ -96,9 +97,14 @@ module Ldpath
       ).repeat
     }
 
-    # @filter selector ;
+    # @filter test ;
     rule(:filter) {
       (k_filter >> wsp? >> node_test.as(:test) >> wsp? >> scolon).as(:filter)
+    }
+
+    # @boost selector ;
+    rule(:boost) {
+      (k_boost >> wsp? >> selector.as(:selector) >> wsp? >> scolon).as(:boost)
     }
     
     # id = . ;

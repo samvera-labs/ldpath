@@ -21,9 +21,7 @@
 
 @filter test:type is foo:bar | test:p1 & is-a test:Case ;
 
-/*
 @boost foo:boost / ^test:boost ;
-*/
 
 path = test:p1 / test:p2 :: test:type ;
 lang_test = test:p1[@en] :: test:type ;

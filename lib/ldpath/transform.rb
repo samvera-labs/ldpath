@@ -39,10 +39,14 @@ module Ldpath
     rule(prefix: simple(:prefix), localName: simple(:localName)) do
       (prefixes[prefix.to_s] || RDF::Vocabulary.new(prefix.to_s))[localName]
     end
-
     
     rule(filter: subtree(:filter)) do
       filters << filter[:test]
+      nil
+    end
+
+    rule(boost: subtree(:boost)) do
+      # no-op
       nil
     end
 

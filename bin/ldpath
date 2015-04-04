@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'open-uri'
+require 'ldpath'
+require 'byebug'
+
+begin
+require 'rest-client'
+rescue LoadError
+end
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: ldpath [options] URI"
+
+  opts.on("--program=STRING_URI_OR_FILE", "LDPath program to run (- for STDIN)") do |program|
+    if File.exists? program or program =~ /^http/
+      options[:program] = open(program).read
+    elsif program.strip == "-"
+      options[:program] = $stdin.read
+    else
+      options[:program] = program
+    end
+  end
+end.parse!
+
+uri = ARGV.shift
+
+puts Ldpath::Program.parse(options[:program]).evaluate(RDF::URI.new(uri)).to_json

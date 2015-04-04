@@ -32,8 +32,8 @@ module Ldpath
     end
     
     def loading uri, context
-      if uri.to_s =~ /^http/ and !loaded[uri]
-        context << load_graph(uri)
+      if uri.to_s =~ /^http/ and !loaded[uri.to_s]
+        context << load_graph(uri.to_s)
       end
     end
 

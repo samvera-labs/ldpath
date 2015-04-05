@@ -65,15 +65,22 @@ module Ldpath
     end
     
     # collections
-    def flatten uri, context, *args
-      
+    def flatten uri, context, lists
+      Array(lists).flatten.map { |x| RDF::List.new(x, context).to_a }.flatten
     end
     
-    def get uri, context, *args
+    def get uri, context, list, idx
+      flatten(uri, context, list)[idx.to_i]
     end
     
-    def subList uri, context, *args
-      
+    def subList uri, context, list, idx_start, idx_end = nil
+      arr = flatten(uri, context, list)
+
+      if idx_end
+        arr[(idx_start.to_i..(idx_end.to_i - idx_start.to_i))]
+      else
+        arr.drop(idx_start.to_i)
+      end
     end
     
     # dates

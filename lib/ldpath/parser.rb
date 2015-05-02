@@ -2,36 +2,23 @@ require 'parslet'
 
 module Ldpath
   class Parser < Parslet::Parser
-    root :lines
-    rule(:lines) { line.repeat }
-    rule(:line) { ((wsp >> expression) | expression) >> space_not_newline? >> (newline | eof) }
+    root :doc
+    rule(:doc) { wsp? >> expression? >> (eol >> wsp? >> expression >> wsp? ).repeat >> wsp? >> eol? >> eof }
 
-    rule(:newline) {  (str("\n") >> str("\r").maybe).repeat(1) }
+    # whitespace rules
+    rule(:eol) {  (str("\n") >> str("\r").maybe).repeat(1) }
+    rule(:eol?) { eol.maybe }
     rule(:eof) { any.absent? }
-
-    rule(:space) { match('\s').repeat(1) }
-    rule(:spaces?) { space.maybe }
-    rule(:space_not_newline) { str("\n").absent? >> space }
-    rule(:space_not_newline?) { space_not_newline.maybe }
-
+    rule(:space) { str("\n").absent? >> match('\s').repeat(1) }
+    rule(:space?) { space.maybe }
     rule(:wsp) { (space | multiline_comment).repeat(1) }
     rule(:wsp?) { wsp.maybe }
     rule(:multiline_comment) { (str('/*') >> (str('*/').absent? >> any).repeat >> str('*/') ) }
 
-    rule(:expression) { wsp | namespace | mapping | graph | filter | boost }
-    
+    # simple types
     rule(:int) { match("\\d+") }
     
-    rule(:comma) { str(",") }
-    rule(:scolon) { str(";") }
-    rule(:colon) { str(":") }
-    rule(:dcolon) { str("::") }
-    rule(:assign) { str("=") }
-    rule(:k_prefix) { str("@prefix")}
-    rule(:k_graph) { str("@graph")}
-    rule(:k_filter) { str("@filter")}
-    rule(:k_boost) { str("@boost")}
-    
+    # operators
     rule(:self_op) { str(".") }
     rule(:and_op) { str("&") }
     rule(:or_op) { str("|") }
@@ -47,6 +34,21 @@ module Ldpath
     rule(:type) { str "^^" }
     rule(:lang) { str "@" }
     rule(:loose) { str("~") }
+
+    # strings
+    rule(:comma) { str(",") }
+    rule(:scolon) { str(";") }
+    rule(:colon) { str(":") }
+    rule(:dcolon) { str("::") }
+    rule(:assign) { str("=") }
+    rule(:k_prefix) { str("@prefix")}
+    rule(:k_graph) { str("@graph")}
+    rule(:k_filter) { str("@filter")}
+    rule(:k_boost) { str("@boost")}
+
+    # expressions
+    rule(:expression) { namespace | mapping | graph | filter | boost }
+    rule(:expression?) { expression.maybe }
     
     # todo: fixme
     rule(:uri) do
@@ -78,7 +80,7 @@ module Ldpath
       k_prefix >> wsp? >>
       identifier.as(:id) >> wsp? >>
       colon >> wsp? >>
-      uri.as(:uri) >> space_not_newline? >> scolon.maybe
+      uri.as(:uri) >> space? >> scolon.maybe
       ).as(:namespace)
     }
     

@@ -5,29 +5,19 @@ describe Ldpath::Parser do
   subject { Ldpath::Parser.new }
   context ".parse" do
     
-    describe "lines" do
+    describe "doc" do
       it "should parse line-oriented data" do
-        subject.lines.parse " \n \n"
+        subject.doc.parse " \n \n"
       end
     end
     
-    describe "line" do
-      it "may be a line ending in a newline" do
-        subject.line.parse " \n"
-      end
-      
-      it "may be a line ending in EOF" do
-        subject.line.parse("/* abc */")
-      end
-    end
-    
-    describe "newline" do
+    describe "eol" do
       it 'may be a \n character' do
-        subject.newline.parse("\n")
+        subject.eol.parse("\n")
       end
       
       it 'may be a \n\r' do
-        subject.newline.parse("\n\r")
+        subject.eol.parse("\n\r")
       end
     end
     
@@ -52,10 +42,6 @@ describe Ldpath::Parser do
     end
     
     describe "expression" do
-      it "may be whitespace" do
-        subject.expression.parse " "
-      end
-      
       it "may be a namespace declaration" do
         subject.expression.parse "@prefix x : info:x ;"
       end

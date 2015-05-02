@@ -28,11 +28,11 @@ module Ldpath
     
     # Core types
     rule(literal: simple(:literal)) { literal.to_s }
-    rule(uri: simple(:uri)) { RDF::URI.new(uri) }
+    rule(iri: simple(:iri)) { RDF::IRI.new(iri) }
     
     # Namespaces
-    rule(namespace: subtree(:namespace)) do
-      prefixes[namespace[:id].to_s] = RDF::Vocabulary.new(namespace[:uri])
+    rule(prefixID: subtree(:prefixID)) do
+      prefixes[prefixID[:id].to_s] = RDF::Vocabulary.new(prefixID[:iri])
       nil
     end
     

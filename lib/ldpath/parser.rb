@@ -7,7 +7,7 @@ module Ldpath
 
     rule(:prologue) { wsp? >> directive?.repeat(1,1) >> (eol >> wsp? >> directive >> wsp? ).repeat >> wsp? >> eol? }
     rule(:prologue?) { prologue.maybe }
-    rule(:directive) { namespace | graph | filter | boost }
+    rule(:directive) { prefixID | graph | filter | boost }
     rule(:directive?) { directive.maybe }
 
     rule(:statements) { wsp? >> statement?.repeat(1,1) >> (eol >> wsp? >> statement >> wsp? ).repeat >> wsp? >> eol? }
@@ -26,7 +26,19 @@ module Ldpath
     rule(:multiline_comment) { (str('/*') >> (str('*/').absent? >> any).repeat >> str('*/') ) }
 
     # simple types
-    rule(:int) { match("\\d+") }
+    rule(:integer) { match("[+-]").maybe >> match("\\d+") }
+    rule(:decimal) { match("[+-]").maybe >> match("\\d*") >> str('.') >> match("\\d+") }
+    rule(:double) do
+      match("[+-]").maybe >> (
+        (match("\\d+") >> str('.') >> match("\\d*") >> exponent) |
+        (str('.') >> match("\\d+") >> exponent) |
+        (match("\\d+") >> exponent)
+      )
+    end
+
+    rule(:exponent) { match('[Ee]') >> match("[+-]").maybe >> match("\\d+") }
+    rule(:numeric_literal) { integer | decimal | double }
+    rule(:boolean_literal) { str('true') | str('false') }
     
     # operators
     rule(:self_op) { str(".") }
@@ -56,52 +68,85 @@ module Ldpath
     rule(:k_filter) { str("@filter")}
     rule(:k_boost) { str("@boost")}
 
-    # todo: fixme
-    rule(:uri) do
-      uri_in_brackets | 
-      prefix_and_localname
+    rule(:iri) do
+      iriref |
+      prefixed_name
     end
     
-    rule(:uri_in_brackets) do
-      str("<") >> (str(">").absent? >> any).repeat.as(:uri) >> str(">")
+    rule(:iriref) do
+      str("<") >> (match("[^[[:cntrl:]]<>\"{}|^`\\\\]") | uchar).repeat.as(:iri) >> str('>')
     end
     
-    rule(:prefix_and_localname) do
-      (identifier.as(:prefix) >> str(":") >> identifier.as(:localName)).as(:uri)
+    rule(:uchar) do
+      str('\u') >> hex.repeat(4) | hex.repeat(6)
+    end
+
+    rule(:echar) do
+      str('\\') >> match("[tbnrf\"'\\\\]")
+    end
+
+    rule(:hex) do
+      match("[[:xdigit:]]")
+    end
+
+    rule(:prefixed_name) do
+      (identifier.as(:prefix) >> str(":") >> identifier.as(:localName)).as(:iri)
     end
     
     rule(:identifier) { match["a-zA-Z0-9_"] >> (match["a-zA-Z0-9_'\\.-"]).repeat }
 
-    rule(:strlit) {
-      str('"') >> (str("\\") >> str("\"") | (str('"').absent? >> any)).repeat.as(:literal) >> str('"')
+    rule(:string) { string_literal_quote | string_literal_single_quote | string_literal_long_single_quote | string_literal_long_quote }
+
+    rule(:string_literal_quote) {
+      str('"') >> (match("[^\\\"\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str('"')
+    }
+
+    rule(:string_literal_single_quote) {
+      str("'") >> (match("[^'\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str("'")
+    }
+
+    rule(:string_literal_long_quote) {
+      str('"""') >> (str('"""').absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str('"""')
+    }
+
+    rule(:string_literal_long_single_quote) {
+      str("'''") >> (str("'''").absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str("'''")
+    }
+
+    rule(:literal) {
+      rdf_literal | numeric_literal | boolean_literal
+    }
+
+    rule(:rdf_literal) {
+      string >> (literal_language_test | literal_type_test).maybe
     }
 
     rule(:node) {
-      uri.as(:uri) | strlit.as(:literal)
+      iri.as(:iri) | literal.as(:literal)
     }
 
-    # @prefix id = uri ;
-    rule(:namespace) { 
+    # @prefix id = iri ;
+    rule(:prefixID) { 
       (
       k_prefix >> wsp? >>
-      identifier.as(:id) >> wsp? >>
+      (identifier | str("")).as(:id) >> wsp? >>
       colon >> wsp? >>
-      uri >> space? >> scolon.maybe
-      ).as(:namespace)
+      iriref >> space? >> scolon.maybe
+      ).as(:prefixID)
     }
     
-    # @graph uri, uri, uri ;
+    # @graph iri, iri, iri ;
     rule(:graph) {
       k_graph >> wsp? >> 
-      uri_list.as(:graphs) >> wsp? >> scolon
+      iri_list.as(:graphs) >> wsp? >> scolon
     }
     
-    rule(:uri_list) {
-      uri.as(:uri) >>
+    rule(:iri_list) {
+      iri.as(:iri) >>
       (
         wsp? >> 
         comma >> wsp? >> 
-        uri_list.as(:rest)
+        iri_list.as(:rest)
       ).repeat
     }
 
@@ -118,7 +163,7 @@ module Ldpath
     # id = . ;
     rule(:mapping) {
       (
-        (uri_in_brackets | prefix_and_localname | identifier).as(:name) >> wsp? >>
+        (iri | identifier).as(:name) >> wsp? >>
         assign >> wsp? >>
         selector.as(:selector) >>
         ( wsp? >> 
@@ -128,7 +173,7 @@ module Ldpath
     }
 
     rule(:field_type) {
-      uri.as(:field_type) >> field_type_options.maybe
+      iri.as(:field_type) >> field_type_options.maybe
     }
 
     rule(:field_type_options) {
@@ -136,7 +181,7 @@ module Ldpath
     }
 
     rule(:field_type_option) {
-      identifier.as(:key) >> wsp? >> assign >> wsp? >> strlit.as(:value)
+      identifier.as(:key) >> wsp? >> assign >> wsp? >> string.as(:value)
     }
     
     # selector groups
@@ -239,12 +284,12 @@ module Ldpath
     rule(:loose_property_selector) {
       loose >> 
       wsp? >> 
-      uri.as(:loose_property)
+      iri.as(:loose_property)
     }
 
     # xyz
     rule(:property_selector) {
-      uri.as(:property)
+      iri.as(:property)
     }
 
     # *
@@ -254,11 +299,11 @@ module Ldpath
 
     # ^xyz
     rule(:reverse_property_selector) {
-      inverse >> uri.as(:reverse_property)
+      inverse >> iri.as(:reverse_property)
     }
     
     rule(:string_constant_selector) {
-      strlit
+      string
     }
     
     # (x)*
@@ -270,7 +315,7 @@ module Ldpath
         (
           star |
           plus |
-          (str("{") >> wsp? >> int.as(:min).maybe >> wsp? >>str(",") >> wsp? >> int.as(:max).maybe >> wsp? >>str("}") ).as(:range)
+          (str("{") >> wsp? >> integer.as(:min).maybe >> wsp? >>str(",") >> wsp? >> integer.as(:max).maybe >> wsp? >>str("}") ).as(:range)
         ).as(:repeat)
       ).as(:recursive)
     }
@@ -343,7 +388,7 @@ module Ldpath
     
     # ^^xyz
     rule(:literal_type_test) {
-      type >> uri.as(:type)
+      type >> iri.as(:type)
     }
     
     rule(:is_a_test) {

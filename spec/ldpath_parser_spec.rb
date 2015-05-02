@@ -43,7 +43,7 @@ describe Ldpath::Parser do
     
     describe "directive" do
       it "may be a namespace declaration" do
-        subject.directive.parse "@prefix x : info:x ;"
+        subject.directive.parse "@prefix x : <info:x> ;"
       end
       
       it "may be a graph" do
@@ -56,22 +56,32 @@ describe Ldpath::Parser do
       end
     end
 
+    describe "prefixID" do
+      it "should parse prefix mappings" do
+        subject.prefixID.parse "@prefix x : <info:x> ;"
+      end
+
+      it "should parse the null prefix" do
+        subject.prefixID.parse "@prefix : <info:x> ;"
+      end
+    end
+
     describe "statement" do
       it "may be a mapping" do
         subject.statement.parse "id = . ;"
       end
     end
     
-    describe "uri" do
-      it "may be a bracketed uri" do
-        result = subject.uri.parse "<info:x>"
-        expect(result[:uri]).to eq "info:x"
+    describe "iri" do
+      it "may be an iriref" do
+        result = subject.iri.parse "<info:x>"
+        expect(result[:iri]).to eq "info:x"
       end
       
-      it "may be a namespace and local name" do
-        result = subject.uri.parse "info:x"
-        expect(result[:uri][:prefix]).to eq "info"
-        expect(result[:uri][:localName]).to eq "x"
+      it "may be a prefixed name" do
+        result = subject.iri.parse "info:x"
+        expect(result[:iri][:prefix]).to eq "info"
+        expect(result[:iri][:localName]).to eq "x"
       end
     end
     
@@ -88,16 +98,40 @@ describe Ldpath::Parser do
       end
     end
     
-    describe "strlit" do
+    describe "string" do
       it "is the content between \"" do
-        subject.strlit.parse '"abc"'
+        subject.string.parse '"abc"'
       end
       
       it "should handle escaped characters" do
-        subject.strlit.parse '"a\"b"'
+        subject.string.parse '"a\"b"'
+      end
+
+      it "should handle single quoted strings" do
+        subject.string.parse "'abc'"
+      end
+
+      it "should handle long strings" do
+        str = <<-EOF
+          """
+           xyz
+          """
+        EOF
+
+        subject.string.parse str.strip
+      end
+      
+      it "should handle long single-quoted strings" do
+        str = <<-EOF
+          '''
+           xyz
+          '''
+        EOF
+
+        subject.string.parse str.strip
       end
     end
-    
+
     describe "node" do
       it "may be a uri" do
         subject.node.parse "info:x"
@@ -105,6 +139,22 @@ describe Ldpath::Parser do
       
       it "may be a literal" do
         subject.node.parse '"a"'
+      end
+
+      it "may be a typed literal" do
+        subject.node.parse '"a"^^info:x'
+      end
+
+      it "may be a language literal" do
+        subject.node.parse '"a"@en'
+      end
+
+      it "may be a numeric literal" do
+        subject.node.parse '0'
+      end
+      
+      it "may be a boolean literal" do
+        subject.node.parse 'true'
       end
     end
     
@@ -153,9 +203,9 @@ describe Ldpath::Parser do
 topic = <http://xmlns.com/foaf/0.1/primaryTopic> :: xsd:string ;
 EOF
         expect(tree.length).to eq 2
-        expect(tree.first).to include :namespace
-        expect(tree.first[:namespace]).to include id: 'dcterms'
-        expect(tree.first[:namespace]).to include uri: 'http://purl.org/dc/terms/'
+        expect(tree.first).to include :prefixID
+        expect(tree.first[:prefixID]).to include id: 'dcterms'
+        expect(tree.first[:prefixID]).to include iri: 'http://purl.org/dc/terms/'
         expect(tree.last).to include :mapping
         expect(tree.last[:mapping]).to include name: 'topic'
         expect(tree.last[:mapping]).to include :selector

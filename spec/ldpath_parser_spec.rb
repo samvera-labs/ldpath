@@ -154,7 +154,7 @@ describe Ldpath::Parser do
       end
       
       it "should parse the namespaces.ldpath" do
-        subject.parse_with_debug File.read(File.expand_path(File.join(__FILE__, "..", "fixtures", "namespaces.ldpath")))
+        subject.parse File.read(File.expand_path(File.join(__FILE__, "..", "fixtures", "namespaces.ldpath")))
       end
     end  
   end

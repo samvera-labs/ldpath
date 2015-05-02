@@ -89,12 +89,14 @@ describe Ldpath::Parser do
       it "must start with an alphanumeric character" do
         subject.identifier.parse "a"
         subject.identifier.parse "J"
-        subject.identifier.parse "4"
-        subject.identifier.parse "_"
       end
       
       it "may have additional alphanumeric characters" do
         subject.identifier.parse "aJ0_.-"
+      end
+      
+      it "may not end in a dot" do
+        expect { subject.identifier.parse "aJ0_.-." }.to raise_error
       end
     end
     

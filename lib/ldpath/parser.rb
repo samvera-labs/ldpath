@@ -78,7 +78,7 @@ module Ldpath
     end
     
     rule(:uchar) do
-      str('\u') >> hex.repeat(4) | hex.repeat(6)
+      str('\u') >> hex.repeat(4,4) | hex.repeat(6,6)
     end
 
     rule(:echar) do
@@ -93,7 +93,16 @@ module Ldpath
       (identifier.as(:prefix) >> str(":") >> identifier.as(:localName)).as(:iri)
     end
     
-    rule(:identifier) { match["a-zA-Z0-9_"] >> (match["a-zA-Z0-9_'\\.-"]).repeat }
+    rule(:identifier) { pn_chars_base >> (str('.').maybe >> pn_chars).repeat }
+
+    rule(:pn_chars_base) {
+      # also \u10000-\uEFFFF
+      match("[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]")
+    }
+
+    rule(:pn_chars) {
+      pn_chars_base | match("[0-9\u00B7\u0300-\u036F\u203F-\u2040_-]")
+    }
 
     rule(:string) { string_literal_quote | string_literal_single_quote | string_literal_long_single_quote | string_literal_long_quote }
 
@@ -159,17 +168,21 @@ module Ldpath
     rule(:boost) {
       (k_boost >> wsp? >> selector.as(:selector) >> wsp? >> scolon).as(:boost)
     }
-    
+
     # id = . ;
     rule(:mapping) {
       (
-        (iri | identifier).as(:name) >> wsp? >>
+        label.as(:name) >> wsp? >>
         assign >> wsp? >>
         selector.as(:selector) >>
         ( wsp? >> 
           dcolon >> wsp? >> field_type
         ).maybe >> wsp? >> scolon
       ).as(:mapping)
+    }
+
+    rule(:label) {
+      iri | identifier
     }
 
     rule(:field_type) {

@@ -145,6 +145,20 @@ describe Ldpath::Parser do
     end
     
     describe "integration tests" do
+      it "should parse a simple example" do
+        tree = subject.parse <<-EOF
+@prefix dcterms : <http://purl.org/dc/terms/> ;
+topic = <http://xmlns.com/foaf/0.1/primaryTopic> :: xsd:string ;
+EOF
+        expect(tree.length).to eq 2
+        expect(tree.first).to include :namespace
+        expect(tree.first[:namespace]).to include id: 'dcterms'
+        expect(tree.first[:namespace]).to include uri: 'http://purl.org/dc/terms/'
+        expect(tree.last).to include :mapping
+        expect(tree.last[:mapping]).to include name: 'topic'
+        expect(tree.last[:mapping]).to include :selector
+      end
+
       it "should parse the foaf example" do
         subject.parse File.read(File.expand_path(File.join(__FILE__, "..", "fixtures", "foaf_example.program")))
       end

@@ -80,7 +80,7 @@ module Ldpath
       k_prefix >> wsp? >>
       identifier.as(:id) >> wsp? >>
       colon >> wsp? >>
-      uri.as(:uri) >> space? >> scolon.maybe
+      uri >> space? >> scolon.maybe
       ).as(:namespace)
     }
     

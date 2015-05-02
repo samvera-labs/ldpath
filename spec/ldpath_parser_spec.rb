@@ -41,22 +41,24 @@ describe Ldpath::Parser do
       end
     end
     
-    describe "expression" do
+    describe "directive" do
       it "may be a namespace declaration" do
-        subject.expression.parse "@prefix x : info:x ;"
+        subject.directive.parse "@prefix x : info:x ;"
       end
       
       it "may be a graph" do
-        subject.expression.parse "@graph test:context, foo:ctx, test:bar ;"
+        subject.directive.parse "@graph test:context, foo:ctx, test:bar ;"
       end
       
 
       it "may be a filter" do
-        subject.expression.parse "@filter is-a test:Context ;"
+        subject.directive.parse "@filter is-a test:Context ;"
       end
-      
+    end
+
+    describe "statement" do
       it "may be a mapping" do
-        subject.expression.parse "id = . ;"
+        subject.statement.parse "id = . ;"
       end
     end
     

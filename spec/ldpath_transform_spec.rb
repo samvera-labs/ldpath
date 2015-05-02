@@ -58,7 +58,7 @@ describe Ldpath::Transform do
   it "should transform functions" do
     subject.apply parser.function_selector.parse("fn:concat(foaf:givename,\" \",foaf:surname)")
   end
-  
+
   it "should transform the foaf example" do
     subject.apply parser.parse(File.read(File.expand_path(File.join(__FILE__, "..", "fixtures", "foaf_example.program")))
 )

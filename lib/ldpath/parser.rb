@@ -3,7 +3,17 @@ require 'parslet'
 module Ldpath
   class Parser < Parslet::Parser
     root :doc
-    rule(:doc) { wsp? >> expression? >> (eol >> wsp? >> expression >> wsp? ).repeat >> wsp? >> eol? >> eof }
+    rule(:doc) { prologue? >> statements? >> eof}
+
+    rule(:prologue) { wsp? >> directive?.repeat(1,1) >> (eol >> wsp? >> directive >> wsp? ).repeat >> wsp? >> eol? }
+    rule(:prologue?) { prologue.maybe }
+    rule(:directive) { namespace | graph | filter | boost }
+    rule(:directive?) { directive.maybe }
+
+    rule(:statements) { wsp? >> statement?.repeat(1,1) >> (eol >> wsp? >> statement >> wsp? ).repeat >> wsp? >> eol? }
+    rule(:statements?) { statements.maybe }
+    rule(:statement) { mapping }
+    rule(:statement?) { mapping.maybe }
 
     # whitespace rules
     rule(:eol) {  (str("\n") >> str("\r").maybe).repeat(1) }
@@ -46,10 +56,6 @@ module Ldpath
     rule(:k_filter) { str("@filter")}
     rule(:k_boost) { str("@boost")}
 
-    # expressions
-    rule(:expression) { namespace | mapping | graph | filter | boost }
-    rule(:expression?) { expression.maybe }
-    
     # todo: fixme
     rule(:uri) do
       uri_in_brackets | 

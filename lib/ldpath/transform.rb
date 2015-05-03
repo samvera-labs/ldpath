@@ -1,5 +1,6 @@
 module Ldpath
   class Transform < Parslet::Transform
+    attr_reader :prefixes
 
     class << self
       def default_prefixes
@@ -20,9 +21,10 @@ module Ldpath
     end
 
     def apply obj, context = nil
-      context ||= { }
+      context ||= {}
       context[:filters] ||= []
       context[:prefixes] ||= {}.merge(self.class.default_prefixes)
+      @prefixes = context[:prefixes]
       super obj, context
     end
     

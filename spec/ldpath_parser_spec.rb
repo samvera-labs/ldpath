@@ -39,6 +39,10 @@ describe Ldpath::Parser do
       it "may be a multiline comment" do
         subject.wsp.parse "/* xyz */"
       end
+
+      it "may be a single line comment" do
+        subject.wsp.parse "# xyz"
+      end
     end
     
     describe "directive" do

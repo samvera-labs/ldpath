@@ -21,9 +21,10 @@ module Ldpath
     rule(:eof) { any.absent? }
     rule(:space) { str("\n").absent? >> match('\s').repeat(1) }
     rule(:space?) { space.maybe }
-    rule(:wsp) { (space | multiline_comment).repeat(1) }
+    rule(:wsp) { (space | multiline_comment | single_line_comment ).repeat(1) }
     rule(:wsp?) { wsp.maybe }
     rule(:multiline_comment) { (str('/*') >> (str('*/').absent? >> any).repeat >> str('*/') ) }
+    rule(:single_line_comment) { str('#') >> (eol.absent? >> any).repeat }
 
     # simple types
     rule(:integer) { match("[+-]").maybe >> match("\\d+") }

@@ -185,6 +185,10 @@ describe Ldpath::Parser do
         subject.mapping.parse("xyz = info:a / info:b :: a:b;")
       end
       
+      it "should parse path selectors" do
+        subject.selector.parse("info:a / info:b")
+      end
+      
       it "recursive_path_selector" do
         subject.recursive_path_selector.parse("(foo:go)*")
       end

@@ -201,20 +201,29 @@ module Ldpath
     # selector groups
     rule(:selector) {
       (
-        compound_selector |
+        compound_or_path_selector |
         testing_selector |
         atomic_selector
       )
     }
 
-    rule(:compound_selector) {
-      (
-        union_selector |
-        intersection_selector |
-        path_selector
-      )
+    rule(:compound_operator) { and_op | or_op }
+
+    rule(:compound_or_path_selector) {
+      path_selector | compound_selector
     }
-    
+    rule(:compound_selector) {
+      atomic_or_testing_or_path_selector.as(:left) >> wsp? >>
+      compound_operator.as(:op) >> wsp? >>
+      selector.as(:right)
+    }
+
+    rule(:path_selector) {
+      atomic_or_testing_selector.as(:left) >> wsp? >>
+      p_sep.as(:op) >> wsp? >>
+      atomic_or_testing_or_path_selector.as(:right)
+    }
+
     rule(:testing_selector) {
       atomic_selector.as(:delegate) >>
       str("[") >> wsp? >>
@@ -244,34 +253,6 @@ module Ldpath
 
     rule(:atomic_or_testing_or_path_selector) {
       (path_selector | atomic_or_testing_selector)
-    }
-
-    # Compound selectors
-    ## x / y
-    rule(:path_selector) {
-      (
-        atomic_or_testing_selector.as(:left) >> wsp? >>
-        p_sep >> wsp? >>
-        atomic_or_testing_or_path_selector.as(:right)
-      ).as(:path)
-    }
-    
-    ## x & y
-    rule(:intersection_selector) {
-      (
-        atomic_or_testing_or_path_selector.as(:left) >> wsp? >>
-        and_op >> wsp? >>
-        selector.as(:right)
-      ).as(:intersection)
-    }
-    
-    ## x | y
-    rule(:union_selector) {
-      (
-        atomic_or_testing_or_path_selector.as(:left) >> wsp? >>
-        or_op >> wsp? >>
-        selector.as(:right)
-      ).as(:union)
     }
 
     # Atomic Selectors

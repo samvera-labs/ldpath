@@ -147,18 +147,17 @@ module Ldpath
     rule(is_a: subtree(:is_a)) do
       IsTest.new PropertySelector.new(RDF.type), is_a[:right]
     end
+
     ### Compound Selectors
-    
-    rule(path: subtree(:path)) do
-      PathSelector.new path[:left], path[:right]
-    end
-    
-    rule(union: subtree(:union)) do
-      UnionSelector.new union[:left], union[:right]
-    end
-    
-    rule(intersection: subtree(:intersection)) do
-      IntersectionSelector.new intersection[:left], intersection[:right]
+    rule(left: subtree(:left), op: simple(:op), right: subtree(:right)) do
+      case op
+        when "/"
+          PathSelector.new left, right
+        when "|"
+          UnionSelector.new left, right
+        when "&"
+          IntersectionSelector.new left, right
+      end
     end
 
 

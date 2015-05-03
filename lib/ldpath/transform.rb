@@ -90,20 +90,18 @@ module Ldpath
     end
 
     rule(range: subtree(:range)) do
-      range.fetch(:min,0).to_i..range.fetch(:max, Infinity).to_f
-    end
-    
-    rule(recursive: subtree(:properties)) do
-      repeat = case properties[:repeat]
+      case range
       when "*"
         0..Infinity
       when "+"
         1..Infinity
-      when Range
-        properties[:repeat]
+      else
+        range.fetch(:min,0).to_i..range.fetch(:max, Infinity).to_f
       end
-
-      RecursivePathSelector.new properties[:delegate], repeat  
+    end
+    
+    rule(delegate: subtree(:delegate), repeat: simple(:repeat)) do
+      RecursivePathSelector.new delegate, repeat  
     end
 
     rule(identifier: simple(:identifier), tap: subtree(:tap)) do

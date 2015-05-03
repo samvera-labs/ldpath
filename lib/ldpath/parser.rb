@@ -212,6 +212,7 @@ module Ldpath
     rule(:compound_or_path_selector) {
       path_selector | compound_selector
     }
+
     rule(:compound_selector) {
       atomic_or_testing_or_path_selector.as(:left) >> wsp? >>
       compound_operator.as(:op) >> wsp? >>
@@ -303,16 +304,18 @@ module Ldpath
     
     # (x)*
     rule(:recursive_path_selector) {
+      str("(") >> wsp? >>
+      selector.as(:delegate) >> wsp? >> 
+      str(")") >>
+      range.as(:repeat)
+    }
+
+    rule(:range) {
       (
-        str("(") >> wsp? >>
-        selector.as(:delegate) >> wsp? >> 
-        str(")") >>
-        (
-          star |
-          plus |
-          (str("{") >> wsp? >> integer.as(:min).maybe >> wsp? >>str(",") >> wsp? >> integer.as(:max).maybe >> wsp? >>str("}") ).as(:range)
-        ).as(:repeat)
-      ).as(:recursive)
+        star |
+        plus |
+        str("{") >> wsp? >> integer.as(:min).maybe >> wsp? >> str(",") >> wsp? >> integer.as(:max).maybe >> wsp? >> str("}")
+      ).as(:range)
     }
     
     rule(:grouped_selector) {

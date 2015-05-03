@@ -95,6 +95,8 @@ module Ldpath
         0..Infinity
       when "+"
         1..Infinity
+      when "?"
+        0..1
       else
         range.fetch(:min,0).to_i..range.fetch(:max, Infinity).to_f
       end

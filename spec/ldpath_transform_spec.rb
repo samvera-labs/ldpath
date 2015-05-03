@@ -31,6 +31,7 @@ describe Ldpath::Transform do
   end
   
   it "should transform recursive properties" do
+    subject.apply parser.parse("xyz = (info:a)? ;\n")
     subject.apply parser.parse("xyz = (info:a)* ;\n")
     subject.apply parser.parse("xyz = (info:a)+ ;\n")
     subject.apply parser.parse("xyz = (info:a){,5} ;\n")

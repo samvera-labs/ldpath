@@ -50,7 +50,7 @@ module Ldpath
     rule(:star) { str("*") }
     rule(:not_op) { str("!") }
     rule(:inverse) { str("^") }
-    rule(:tap) { str("?") }
+    rule(:question) { str("?") }
     rule(:is) { str "is" }
     rule(:is_a) { str "is-a" }
     rule(:func) { str "fn:"}
@@ -314,6 +314,7 @@ module Ldpath
       (
         star |
         plus |
+        question |
         str("{") >> wsp? >> integer.as(:min).maybe >> wsp? >> str(",") >> wsp? >> integer.as(:max).maybe >> wsp? >> str("}")
       ).as(:range)
     }
@@ -325,7 +326,7 @@ module Ldpath
     }
 
     rule(:tap_selector) {
-      tap >>
+      question >>
       str("<") >> wsp? >>
       identifier.as(:identifier) >> wsp? >>
       str(">") >> wsp? >>

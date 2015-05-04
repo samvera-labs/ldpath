@@ -305,4 +305,10 @@ title_with_loose =  ~dc:title :: xsd:string ;
       expect(result).to be_empty
     end
   end
+
+  describe "error handling" do
+    it "should provide a reasonable exception" do
+      expect { Ldpath::Program.parse "title .= <oops> ;" }.to raise_error /Expected "=", but got "."/
+    end
+  end
 end

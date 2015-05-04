@@ -3,32 +3,32 @@ require 'parslet'
 module Ldpath
   class Parser < Parslet::Parser
     root :doc
-    rule(:doc) { prologue? >> statements? >> eof}
+    rule(:doc) { prologue? >> statements? >> eof }
 
-    rule(:prologue) { wsp? >> directive?.repeat(1,1) >> (eol >> wsp? >> directive >> wsp? ).repeat >> wsp? >> eol? }
+    rule(:prologue) { wsp? >> directive?.repeat(1, 1) >> (eol >> wsp? >> directive >> wsp?).repeat >> wsp? >> eol? }
     rule(:prologue?) { prologue.maybe }
     rule(:directive) { prefixID | graph | filter | boost }
     rule(:directive?) { directive.maybe }
 
-    rule(:statements) { wsp? >> statement?.repeat(1,1) >> (eol >> wsp? >> statement >> wsp? ).repeat >> wsp? >> eol? }
+    rule(:statements) { wsp? >> statement?.repeat(1, 1) >> (eol >> wsp? >> statement >> wsp?).repeat >> wsp? >> eol? }
     rule(:statements?) { statements.maybe }
     rule(:statement) { mapping }
     rule(:statement?) { mapping.maybe }
 
     # whitespace rules
-    rule(:eol) {  (str("\n") >> str("\r").maybe).repeat(1) }
+    rule(:eol) { (str("\n") >> str("\r").maybe).repeat(1) }
     rule(:eol?) { eol.maybe }
     rule(:eof) { any.absent? }
     rule(:space) { str("\n").absent? >> match('\s').repeat(1) }
     rule(:space?) { space.maybe }
-    rule(:wsp) { (space | multiline_comment | single_line_comment ).repeat(1) }
+    rule(:wsp) { (space | multiline_comment | single_line_comment).repeat(1) }
     rule(:wsp?) { wsp.maybe }
-    rule(:multiline_comment) { (str('/*') >> (str('*/').absent? >> any).repeat >> str('*/') ) }
-    rule(:single_line_comment) { str('#') >> (eol.absent? >> any).repeat }
+    rule(:multiline_comment) { (str("/*") >> (str("*/").absent? >> any).repeat >> str("*/")) }
+    rule(:single_line_comment) { str("#") >> (eol.absent? >> any).repeat }
 
     # simple types
     rule(:integer) { match("[+-]").maybe >> match("\\d+") }
-    rule(:decimal) { match("[+-]").maybe >> match("\\d*") >> str('.') >> match("\\d+") }
+    rule(:decimal) { match("[+-]").maybe >> match("\\d*") >> str(".") >> match("\\d+") }
     rule(:double) do
       match("[+-]").maybe >> (
         (match("\\d+") >> str('.') >> match("\\d*") >> exponent) |
@@ -43,21 +43,21 @@ module Ldpath
 
     rule(:string) { string_literal_quote | string_literal_single_quote | string_literal_long_single_quote | string_literal_long_quote }
 
-    rule(:string_literal_quote) {
+    rule(:string_literal_quote) do
       str('"') >> (match("[^\\\"\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str('"')
-    }
+    end
 
-    rule(:string_literal_single_quote) {
+    rule(:string_literal_single_quote) do
       str("'") >> (match("[^'\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str("'")
-    }
+    end
 
-    rule(:string_literal_long_quote) {
+    rule(:string_literal_long_quote) do
       str('"""') >> (str('"""').absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str('"""')
-    }
+    end
 
-    rule(:string_literal_long_single_quote) {
+    rule(:string_literal_long_single_quote) do
       str("'''") >> (str("'''").absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str("'''")
-    }
+    end
 
     # operators
     rule(:self_op) { str(".") }
@@ -71,7 +71,7 @@ module Ldpath
     rule(:question) { str("?") }
     rule(:is) { str "is" }
     rule(:is_a) { str "is-a" }
-    rule(:func) { str "fn:"}
+    rule(:func) { str "fn:" }
     rule(:type) { str "^^" }
     rule(:lang) { str "@" }
     rule(:loose) { str("~") }
@@ -82,23 +82,23 @@ module Ldpath
     rule(:colon) { str(":") }
     rule(:dcolon) { str("::") }
     rule(:assign) { str("=") }
-    rule(:k_prefix) { str("@prefix")}
-    rule(:k_graph) { str("@graph")}
-    rule(:k_filter) { str("@filter")}
-    rule(:k_boost) { str("@boost")}
+    rule(:k_prefix) { str("@prefix") }
+    rule(:k_graph) { str("@graph") }
+    rule(:k_filter) { str("@filter") }
+    rule(:k_boost) { str("@boost") }
 
     # iris
     rule(:iri) do
       iriref |
-      prefixed_name
+        prefixed_name
     end
-    
+
     rule(:iriref) do
       str("<") >> (match("[^[[:cntrl:]]<>\"{}|^`\\\\]") | uchar).repeat.as(:iri) >> str('>')
     end
-    
+
     rule(:uchar) do
-      str('\u') >> hex.repeat(4,4) | hex.repeat(6,6)
+      str('\u') >> hex.repeat(4, 4) | hex.repeat(6, 6)
     end
 
     rule(:echar) do
@@ -112,331 +112,330 @@ module Ldpath
     rule(:prefixed_name) do
       (identifier.as(:prefix) >> str(":") >> identifier.as(:localName)).as(:iri)
     end
-    
-    rule(:identifier) { pn_chars_base >> (str('.').maybe >> pn_chars).repeat }
 
-    rule(:pn_chars_base) {
+    rule(:identifier) { pn_chars_base >> (str(".").maybe >> pn_chars).repeat }
+
+    rule(:pn_chars_base) do
       # also \u10000-\uEFFFF
       match("[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]")
-    }
+    end
 
-    rule(:pn_chars) {
+    rule(:pn_chars) do
       pn_chars_base | match("[0-9\u00B7\u0300-\u036F\u203F-\u2040_-]")
-    }
+    end
 
     # "xyz"; 0.123e52; true
-    rule(:literal) {
+    rule(:literal) do
       rdf_literal | numeric_literal | boolean_literal
-    }
+    end
 
     # "xyz"; "xyz"^^a; "xyz"@en
-    rule(:rdf_literal) {
+    rule(:rdf_literal) do
       string >> (literal_language_test | literal_type_test).maybe
-    }
+    end
 
-    rule(:node) {
+    rule(:node) do
       iri.as(:iri) | literal.as(:literal)
-    }
+    end
 
     # @prefix id = iri ;
-    rule(:prefixID) { 
+    rule(:prefixID) do
       (
       k_prefix >> wsp? >>
       (identifier | str("")).as(:id) >> wsp? >>
       colon >> wsp? >>
       iriref >> space? >> scolon.maybe
       ).as(:prefixID)
-    }
-    
+    end
+
     # @graph iri, iri, iri ;
-    rule(:graph) {
-      k_graph >> wsp? >> 
-      iri_list.as(:graphs) >> wsp? >> scolon
-    }
-    
+    rule(:graph) do
+      k_graph >> wsp? >>
+        iri_list.as(:graphs) >> wsp? >> scolon
+    end
+
     # <info:a>, <info:b>
-    rule(:iri_list) {
+    rule(:iri_list) do
       iri.as(:iri) >>
-      (
-        wsp? >> 
-        comma >> wsp? >> 
-        iri_list.as(:rest)
-      ).repeat
-    }
+        (
+          wsp? >>
+          comma >> wsp? >>
+          iri_list.as(:rest)
+        ).repeat
+    end
 
     # @filter test ;
-    rule(:filter) {
+    rule(:filter) do
       (k_filter >> wsp? >> node_test.as(:test) >> wsp? >> scolon).as(:filter)
-    }
+    end
 
     # @boost selector ;
-    rule(:boost) {
+    rule(:boost) do
       (k_boost >> wsp? >> selector.as(:selector) >> wsp? >> scolon).as(:boost)
-    }
+    end
 
     # id = . ;
-    rule(:mapping) {
+    rule(:mapping) do
       (
         label.as(:name) >> wsp? >>
         assign >> wsp? >>
         selector.as(:selector) >>
-        ( wsp? >> 
+        (wsp? >>
           dcolon >> wsp? >> field_type
         ).maybe >> wsp? >> scolon
       ).as(:mapping)
-    }
+    end
 
-    rule(:label) {
+    rule(:label) do
       iri | identifier
-    }
+    end
 
     # xsd:string
-    rule(:field_type) {
+    rule(:field_type) do
       iri.as(:field_type) >> field_type_options.maybe
-    }
+    end
 
     # ( x = "xyz", y = "abc" )
-    rule(:field_type_options) {
+    rule(:field_type_options) do
       str("(") >> wsp? >> (field_type_option >> (wsp? >> comma >> wsp? >> field_type_option).repeat).as(:options) >> wsp? >> str(")")
-    }
+    end
 
     # x = "xyz"
-    rule(:field_type_option) {
+    rule(:field_type_option) do
       identifier.as(:key) >> wsp? >> assign >> wsp? >> literal.as(:value)
-    }
-    
+    end
+
     # selector groups
-    rule(:selector) {
+    rule(:selector) do
       (
         compound_or_path_selector |
         testing_selector |
         atomic_selector
       )
-    }
+    end
 
     # &; |
     rule(:compound_operator) { and_op | or_op }
 
     # a & b; a | b; a / b
-    rule(:compound_or_path_selector) {
+    rule(:compound_or_path_selector) do
       path_selector | compound_selector
-    }
+    end
 
     # a & b; a | b
-    rule(:compound_selector) {
+    rule(:compound_selector) do
       atomic_or_testing_or_path_selector.as(:left) >> wsp? >>
-      compound_operator.as(:op) >> wsp? >>
-      selector.as(:right)
-    }
+        compound_operator.as(:op) >> wsp? >>
+        selector.as(:right)
+    end
 
     # a / b
-    rule(:path_selector) {
+    rule(:path_selector) do
       atomic_or_testing_selector.as(:left) >> wsp? >>
-      p_sep.as(:op) >> wsp? >>
-      atomic_or_testing_or_path_selector.as(:right)
-    }
+        p_sep.as(:op) >> wsp? >>
+        atomic_or_testing_or_path_selector.as(:right)
+    end
 
     # info:a[is-a z]
-    rule(:testing_selector) {
+    rule(:testing_selector) do
       atomic_selector.as(:delegate) >>
-      str("[") >> wsp? >>
-      node_test.as(:test) >> wsp? >>
-      str("]")
-    }
+        str("[") >> wsp? >>
+        node_test.as(:test) >> wsp? >>
+        str("]")
+    end
 
-    rule(:atomic_selector) {
+    rule(:atomic_selector) do
       (
         self_selector |
         function_selector |
         property_selector |
         loose_property_selector |
-        wildcard_selector | 
+        wildcard_selector |
         reverse_property_selector |
         string_constant_selector |
         recursive_path_selector |
         grouped_selector |
         tap_selector
       )
-    }    
+    end
 
-    rule(:atomic_or_testing_selector) {
+    rule(:atomic_or_testing_selector) do
       (testing_selector | atomic_selector)
-    }
+    end
 
-    rule(:atomic_or_testing_or_path_selector) {
+    rule(:atomic_or_testing_or_path_selector) do
       (path_selector | atomic_or_testing_selector)
-    }
+    end
 
     # Atomic Selectors
-    rule(:self_selector) {
+    rule(:self_selector) do
       self_op.as(:self)
-    }
-    
+    end
+
     # fn:x() or fn:x(1,2,3)
-    rule(:function_selector) {
+    rule(:function_selector) do
       function_without_args | function_with_arglist
-    }
+    end
 
-    rule(:function_without_args) {
+    rule(:function_without_args) do
       func >> identifier.as(:fname) >> str("()")
-    }
+    end
 
-    rule(:function_with_arglist) {
+    rule(:function_with_arglist) do
       func >> identifier.as(:fname) >> str("(") >> wsp? >> arglist.as(:arglist) >> wsp? >> str(")")
-    }
-    
-    rule(:arglist) {
-      selector >> 
-      (
-        wsp? >> 
-        comma >> wsp? >> 
-        selector
-      ).repeat
-    }
-    
-    # xyz
-    rule(:loose_property_selector) {
-      loose.as(:loose) >> 
-      wsp? >> 
-      iri.as(:property)
-    }
+    end
+
+    rule(:arglist) do
+      selector >>
+        (
+          wsp? >>
+          comma >> wsp? >>
+          selector
+        ).repeat
+    end
 
     # xyz
-    rule(:property_selector) {
+    rule(:loose_property_selector) do
+      loose.as(:loose) >>
+        wsp? >>
+        iri.as(:property)
+    end
+
+    # xyz
+    rule(:property_selector) do
       iri.as(:property)
-    }
+    end
 
     # *
-    rule(:wildcard_selector) {
+    rule(:wildcard_selector) do
       star.as(:wildcard)
-    }
+    end
 
     # ^xyz
-    rule(:reverse_property_selector) {
+    rule(:reverse_property_selector) do
       inverse.as(:reverse) >> iri.as(:property)
-    }
-    
-    rule(:string_constant_selector) {
+    end
+
+    rule(:string_constant_selector) do
       string
-    }
-    
+    end
+
     # (x)?; (x)*; (x)+; (x){3,5}
-    rule(:recursive_path_selector) {
+    rule(:recursive_path_selector) do
       str("(") >> wsp? >>
-      selector.as(:delegate) >> wsp? >> 
-      str(")") >>
-      range.as(:repeat)
-    }
+        selector.as(:delegate) >> wsp? >>
+        str(")") >>
+        range.as(:repeat)
+    end
 
     # ?; *; +; {3,5}; {,5}; {3,}
-    rule(:range) {
+    rule(:range) do
       (
         star |
         plus |
         question |
         str("{") >> wsp? >> integer.as(:min).maybe >> wsp? >> str(",") >> wsp? >> integer.as(:max).maybe >> wsp? >> str("}")
       ).as(:range)
-    }
-    
+    end
+
     # (<info:a>)
-    rule(:grouped_selector) {
-      str("(") >> wsp? >> 
-      selector >> wsp? >> 
-      str(")")
-    }
+    rule(:grouped_selector) do
+      str("(") >> wsp? >>
+        selector >> wsp? >>
+        str(")")
+    end
 
     # ?<a>(<info:a>)
-    rule(:tap_selector) {
+    rule(:tap_selector) do
       question >>
-      str("<") >> wsp? >>
-      identifier.as(:identifier) >> wsp? >>
-      str(">") >> wsp? >>
-      (atomic_selector).as(:tap)
-    }
-    
+        str("<") >> wsp? >>
+        identifier.as(:identifier) >> wsp? >>
+        str(">") >> wsp? >>
+        (atomic_selector).as(:tap)
+    end
+
     # Testing Selectors
-    
-    rule(:node_test) {
+
+    rule(:node_test) do
       grouped_test |
-      not_test |
-      and_test |
-      or_test  |
-      atomic_node_test
-    }
+        not_test |
+        and_test |
+        or_test |
+        atomic_node_test
+    end
 
-    rule(:atomic_node_test) {
+    rule(:atomic_node_test) do
       literal_language_test |
-      literal_type_test |
-      is_a_test |
-      path_equality_test |
-      function_test |
-      path_test
-    }
+        literal_type_test |
+        is_a_test |
+        path_equality_test |
+        function_test |
+        path_test
+    end
 
-    rule(:grouped_test) {
-      str("(")  >> wsp? >> 
-      node_test >> wsp? >> 
-      str(")") 
-    }
-    
-    rule(:not_test) {
+    rule(:grouped_test) do
+      str("(") >> wsp? >>
+        node_test >> wsp? >>
+        str(")")
+    end
+
+    rule(:not_test) do
       (
         not_op >> node_test.as(:delegate)
       ).as(:not)
-    }
-    
-    rule(:and_test) {
+    end
+
+    rule(:and_test) do
       (
-        atomic_node_test.as(:left) >> wsp? >> 
-        and_op >> wsp? >> 
+        atomic_node_test.as(:left) >> wsp? >>
+        and_op >> wsp? >>
         node_test.as(:right)
       ).as(:and)
-    }
-    
-    rule(:or_test) {
+    end
+
+    rule(:or_test) do
       (
-        atomic_node_test.as(:left) >> wsp? >> 
-        or_op >> wsp? >> 
+        atomic_node_test.as(:left) >> wsp? >>
+        or_op >> wsp? >>
         node_test.as(:right)
       ).as(:or)
-    }
+    end
 
     # @en
-    rule(:literal_language_test) {
+    rule(:literal_language_test) do
       lang >> identifier.as(:lang)
-    }
-    
+    end
+
     # ^^xyz
-    rule(:literal_type_test) {
+    rule(:literal_type_test) do
       type >> iri.as(:type)
-    }
-    
-    rule(:is_a_test) {
+    end
+
+    rule(:is_a_test) do
       (
-        is_a >> wsp? >> 
+        is_a >> wsp? >>
         node.as(:right)
       ).as(:is_a)
-    }
-    
-    rule(:path_equality_test) {
+    end
+
+    rule(:path_equality_test) do
       (
         selector >> wsp? >>
         is >> wsp? >>
         node.as(:right)
       ).as(:is)
-    }
-    
-    rule(:function_test) {
-      function_without_args | function_with_arglist
-    }
+    end
 
-    rule(:path_test) {
+    rule(:function_test) do
+      function_without_args | function_with_arglist
+    end
+
+    rule(:path_test) do
       (
         path_selector |
         testing_selector |
         atomic_selector
       )
-    }
-
+    end
   end
 end

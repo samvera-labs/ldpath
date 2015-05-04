@@ -25,16 +25,16 @@ is_test = .[dcterms:title is "Hello, world!"] ;
 is_not_test = .[!(dcterms:title is "Hello, world!")] ;
 EOF
     end
-    
+
     let(:object) { RDF::URI.new("info:a") }
     let(:parent) { RDF::URI.new("info:b") }
     let(:child) { RDF::URI.new("info:c") }
     let(:grandparent) { RDF::URI.new("info:d") }
-    
+
     let(:graph) do
       RDF::Graph.new
     end
-    
+
     it "should work" do
       graph << [object, RDF::DC.title, "Hello, world!"]
       graph << [object, RDF::DC.isPartOf, parent]
@@ -70,7 +70,7 @@ EOF
       expect(result["is_not_test"]).to be_empty
     end
   end
-  
+
   describe "functions" do
     let(:program) do
       Ldpath::Program.parse <<-EOF
@@ -94,7 +94,7 @@ EOF
     end
 
     let(:object) { RDF::URI.new("info:a") }
-    
+
     let(:graph) do
       graph = RDF::Graph.new
       graph << [object, RDF::DC.title, "Hello, world!"]
@@ -137,7 +137,7 @@ EOF
         expect(subject).to include "first_b" => ["b"]
       end
     end
-    
+
     describe "last" do
       it "should take the last value" do
         expect(subject).to include "last_b" => ["b"]
@@ -182,17 +182,15 @@ EOF
       end
     end
   end
-  
+
   describe "Data loading" do
     subject do
-      
       Ldpath::Program.parse <<-EOF
 @prefix dcterms : <http://purl.org/dc/terms/> ;
 title = foaf:primaryTopic / dc:title :: xsd:string ;
 EOF
-      
     end
-    
+
     it "should work" do
       result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5.rdf")
       expect(result["title"]).to match_array "Huw Stephens"
@@ -217,17 +215,17 @@ EOF
     let(:object) { RDF::URI.new("info:a") }
     let(:child) { RDF::URI.new("info:b") }
     let(:grandchild) { RDF::URI.new("info:c") }
-    
+
     let(:graph) do
       graph = RDF::Graph.new
-      
+
       graph << [object, RDF::DC.title, "Object"]
       graph << [child, RDF::DC.title, "Child"]
       graph << [object, RDF::DC.hasPart, child]
 
       graph
     end
-    
+
     subject do
       Ldpath::Program.parse <<-EOF
 @prefix dcterms : <http://purl.org/dc/terms/> ;
@@ -243,22 +241,22 @@ child_title_with_tap = dcterms:hasPart / ?<tap>fn:predicates() / dcterms:title :
       expect(result["tap"]).to eq ["http://purl.org/dc/terms/title"]
     end
   end
-  
+
   describe "loose selector" do
     let(:object) { RDF::URI.new("info:a") }
     let(:child) { RDF::URI.new("info:b") }
     let(:grandchild) { RDF::URI.new("info:c") }
-    
+
     let(:graph) do
       graph = RDF::Graph.new
-      
+
       graph << [object, RDF::DC.title, "Object"]
       graph << [child, RDF::DC.title, "Child"]
       graph << [object, RDF::DC.hasPart, child]
 
       graph
     end
-    
+
     subject do
       Ldpath::Program.parse <<-EOF
 @prefix dcterms : <http://purl.org/dc/terms/> ;
@@ -275,7 +273,6 @@ title_with_loose =  ~dc:title :: xsd:string ;
   end
 
   describe "filter" do
-    
     subject do
       Ldpath::Program.parse <<-EOF
     @prefix dcterms : <http://purl.org/dc/terms/> ;
@@ -287,28 +284,25 @@ title_with_loose =  ~dc:title :: xsd:string ;
 
     let(:object) { RDF::URI.new("info:a") }
     let(:other_object) { RDF::URI.new("info:b") }
-    
-    
+
     let(:graph) do
       graph = RDF::Graph.new
-      
+
       graph << [object, RDF.type, RDF::DC.Agent]
       graph << [object, RDF::DC.title, "Title"]
       graph << [other_object, RDF::DC.title, "Other Title"]
 
       graph
     end
-    
+
     it "should work" do
       result = subject.evaluate object, graph
       expect(result["title"]).to eq ["Title"]
     end
-    
+
     it "filters objects that don't match" do
       result = subject.evaluate other_object, graph
       expect(result).to be_empty
     end
-
-
   end
 end

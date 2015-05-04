@@ -5,17 +5,17 @@ describe Ldpath::Transform do
   it "should transform literals" do
     subject.apply(literal: "xyz")
   end
-  
+
   it "should transform uris" do
     actual = subject.apply(iri: "info:a")
     expect(actual).to eq RDF::URI.new("info:a")
   end
-  
+
   it "should transform prefix + localNames" do
-    actual = subject.apply(prefix: "rdf", localName:"type")
+    actual = subject.apply(prefix: "rdf", localName: "type")
     expect(actual).to eq RDF.type
   end
-  
+
   it "should transform mappings" do
     actual = subject.apply parser.parse("x = . ;")
     expect(actual.length).to eq 1
@@ -24,7 +24,7 @@ describe Ldpath::Transform do
     expect(mapping.name).to eq "x"
     expect(mapping.selector).to be_a_kind_of Ldpath::SelfSelector
   end
-  
+
   it "should transform wildcards" do
     actual = subject.apply parser.parse("xyz = * ;\n")
 
@@ -33,7 +33,7 @@ describe Ldpath::Transform do
     expect(mapping.name).to eq "xyz"
     expect(mapping.selector).to be_a_kind_of Ldpath::WildcardSelector
   end
-  
+
   it "should transform reverse properties" do
     actual = subject.apply parser.parse("xyz = ^info:a ;\n")
 
@@ -43,7 +43,7 @@ describe Ldpath::Transform do
     expect(mapping.selector).to be_a_kind_of Ldpath::ReversePropertySelector
     expect(mapping.selector.property).to eq RDF::URI.new("info:a")
   end
-  
+
   describe "recursive properties" do
     it "is a zero-or-one matcher" do
       actual = subject.apply parser.parse("xyz = (info:a)? ;\n")
@@ -107,7 +107,7 @@ describe Ldpath::Transform do
     expect(selector.identifier).to eq "x"
     expect(selector.tap).to be_a_kind_of Ldpath::PropertySelector
   end
-  
+
   it "should transform loose property selectors" do
     actual = subject.apply parser.parse("xyz = ~info:a ;\n")
 
@@ -117,11 +117,11 @@ describe Ldpath::Transform do
   end
 
   it "should transform namespaces" do
-    actual = subject.apply parser.parse("@prefix xyz: <info:xyz>")
+    subject.apply parser.parse("@prefix xyz: <info:xyz>")
     expect(subject.prefixes).to include "xyz"
     expect(subject.prefixes["xyz"].to_s).to eq "info:xyz"
   end
-  
+
   it "should transform path selectors" do
     actual = subject.apply parser.parse("x = info:a / . ;")
 
@@ -130,7 +130,7 @@ describe Ldpath::Transform do
     expect(selector.left).to be_a_kind_of Ldpath::PropertySelector
     expect(selector.right).to be_a_kind_of Ldpath::SelfSelector
   end
-  
+
   it "should transform functions" do
     selector = subject.apply parser.function_selector.parse("fn:concat(foaf:givename,\" \",foaf:surname)")
 
@@ -140,12 +140,10 @@ describe Ldpath::Transform do
   end
 
   it "should transform the foaf example" do
-    subject.apply parser.parse(File.read(File.expand_path(File.join(__FILE__, "..", "fixtures", "foaf_example.program")))
-)
+    subject.apply parser.parse(File.read(File.expand_path(File.join(__FILE__, "..", "fixtures", "foaf_example.program"))))
   end
-  
+
   it "should parse the program.ldpath" do
     subject.apply parser.parse File.read(File.expand_path(File.join(__FILE__, "..", "fixtures", "program.ldpath")))
   end
-
 end

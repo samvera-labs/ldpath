@@ -6,8 +6,8 @@ require 'ldpath'
 require 'byebug'
 
 begin
-require 'rest-client'
-rescue LoadError
+  require 'rest-client'
+  rescue LoadError
 end
 
 options = {}
@@ -15,7 +15,7 @@ OptionParser.new do |opts|
   opts.banner = "Usage: ldpath [options] URI"
 
   opts.on("--program=STRING_URI_OR_FILE", "LDPath program to run (- for STDIN)") do |program|
-    if File.exists? program or program =~ /^http/
+    if File.exists?(program) || program =~ /^http/
       options[:program] = open(program).read
     elsif program.strip == "-"
       options[:program] = $stdin.read

@@ -154,7 +154,11 @@ describe Ldpath::Parser do
       end
 
       it "may be a numeric literal" do
-        subject.node.parse '0'
+        subject.node.parse '123'
+      end
+
+      it "may be a decimal literal" do
+        subject.decimal.parse '0.123'
       end
 
       it "may be a boolean literal" do

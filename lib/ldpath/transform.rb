@@ -29,7 +29,22 @@ module Ldpath
     end
 
     # Core types
-    rule(literal: simple(:literal)) { literal.to_s }
+    rule(true: simple(:true)) { true }
+    rule(false: simple(:false)) { false }
+    rule(integer: simple(:integer)) { integer.to_i }
+    rule(double: simple(:double)) { double.to_f }
+    rule(decimal: simple(:decimal)) { decimal.to_f }
+    rule(string: simple(:string), lang: simple(:lang)) { RDF::Literal.new(string, language: lang) }
+    rule(string: simple(:string), type: simple(:type)) { RDF::Literal.new(string, datatype: RDF::URI.new(type)) }
+    rule(literal: simple(:literal)) do
+      case literal
+      when RDF::Literal
+        literal
+      else
+        RDF::Literal(literal)
+      end
+    end
+
     rule(iri: simple(:iri)) { RDF::IRI.new(iri) }
 
     # Namespaces

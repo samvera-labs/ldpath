@@ -27,19 +27,19 @@ module Ldpath
     rule(:single_line_comment) { str("#") >> (eol.absent? >> any).repeat }
 
     # simple types
-    rule(:integer) { match("[+-]").maybe >> match("\\d+") }
-    rule(:decimal) { match("[+-]").maybe >> match("\\d*") >> str(".") >> match("\\d+") }
+    rule(:integer) { match("[+-]").maybe >> match("\\d").repeat(1) }
+    rule(:decimal) { match("[+-]").maybe >> match("\\d").repeat >> str(".") >> match("\\d").repeat(1) }
     rule(:double) do
       match("[+-]").maybe >> (
-        (match("\\d+") >> str('.') >> match("\\d*") >> exponent) |
-        (str('.') >> match("\\d+") >> exponent) |
-        (match("\\d+") >> exponent)
+        (match("\\d").repeat(1) >> str('.') >> match("\\d").repeat >> exponent) |
+        (str('.') >> match("\\d").repeat(1) >> exponent) |
+        (match("\\d").repeat(1) >> exponent)
       )
     end
 
-    rule(:exponent) { match('[Ee]') >> match("[+-]").maybe >> match("\\d+") }
-    rule(:numeric_literal) { integer | decimal | double }
-    rule(:boolean_literal) { str('true') | str('false') }
+    rule(:exponent) { match('[Ee]') >> match("[+-]").maybe >> match("\\d").repeat(1) }
+    rule(:numeric_literal) { integer.as(:integer) | decimal.as(:decimal) | double.as(:double) }
+    rule(:boolean_literal) { str('true').as(:true) | str('false').as(:false) }
 
     rule(:string) { string_literal_quote | string_literal_single_quote | string_literal_long_single_quote | string_literal_long_quote }
 
@@ -131,7 +131,9 @@ module Ldpath
 
     # "xyz"; "xyz"^^a; "xyz"@en
     rule(:rdf_literal) do
-      string >> (literal_language_test | literal_type_test).maybe
+      string.as(:string) >> lang >> identifier.as(:lang) |
+        string.as(:string) >> type >> iri.as(:type) |
+        string
     end
 
     rule(:node) do
@@ -252,7 +254,7 @@ module Ldpath
         loose_property_selector |
         wildcard_selector |
         reverse_property_selector |
-        string_constant_selector |
+        literal_selector |
         recursive_path_selector |
         grouped_selector |
         tap_selector
@@ -316,8 +318,8 @@ module Ldpath
       inverse.as(:reverse) >> iri.as(:property)
     end
 
-    rule(:string_constant_selector) do
-      string
+    rule(:literal_selector) do
+      literal.as(:literal)
     end
 
     # (x)?; (x)*; (x)+; (x){3,5}

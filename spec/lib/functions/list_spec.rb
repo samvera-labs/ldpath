@@ -32,7 +32,7 @@ describe "LDPath list functions" do
     let(:program) do
       Ldpath::Program.parse <<-EOF
         @prefix ex : <http://example.com/> ;
-        list_item = fn:get(ex:list, "1") :: xsd:string ;
+        list_item = fn:get(ex:list, 1) :: xsd:string ;
       EOF
     end
 
@@ -45,8 +45,8 @@ describe "LDPath list functions" do
     let(:program) do
       Ldpath::Program.parse <<-EOF
         @prefix ex : <http://example.com/> ;
-        list_items = fn:subList(ex:list, "1") :: xsd:string ;
-        list_items_by_range = fn:subList(ex:list, "0", "1") :: xsd:string ;
+        list_items = fn:subList(ex:list, 1) :: xsd:string ;
+        list_items_by_range = fn:subList(ex:list, 0, 1) :: xsd:string ;
       EOF
     end
 

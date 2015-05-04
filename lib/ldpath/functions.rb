@@ -71,16 +71,21 @@ module Ldpath
     end
 
     def get(uri, context, list, idx)
-      flatten(uri, context, list)[idx.to_i]
+      idx = idx.respond_to?(:to_i) ? idx.to_i : idx.to_s.to_i
+
+      flatten(uri, context, list)[idx]
     end
 
     def subList(uri, context, list, idx_start, idx_end = nil)
       arr = flatten(uri, context, list)
 
+      idx_start = idx_start.respond_to?(:to_i) ? idx_start.to_i : idx_start.to_s.to_i
+      idx_end &&= idx_end.respond_to?(:to_i) ? idx_end.to_i : idx_end.to_s.to_i
+
       if idx_end
-        arr[(idx_start.to_i..(idx_end.to_i - idx_start.to_i))]
+        arr[(idx_start.to_i..(idx_end - idx_start))]
       else
-        arr.drop(idx_start.to_i)
+        arr.drop(idx_start)
       end
     end
 
@@ -180,7 +185,7 @@ module Ldpath
     def xpath(uri, context, xpath, node)
       x = Array(xpath).flatten.first
       Array(node).flatten.compact.map do |n|
-        Nokogiri::XML(n).xpath(x, prefixes.map { |k, v| [k, v.to_s] }).map(&:text)
+        Nokogiri::XML(n.to_s).xpath(x.to_s, prefixes.map { |k, v| [k, v.to_s] }).map(&:text)
       end
     end
   end

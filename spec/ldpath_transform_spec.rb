@@ -2,13 +2,42 @@ require 'spec_helper'
 require 'pp'
 describe Ldpath::Transform do
   let(:parser) { Ldpath::Parser.new }
-  it "should transform literals" do
-    subject.apply(literal: "xyz")
-  end
+  describe "transforms nodes" do
+    let(:parser) { Ldpath::Parser.new.node }
+    it "handles iris" do
+      actual = subject.apply parser.parse("<info:a>")
+      expect(actual).to eq RDF::URI.new("info:a")
+    end
 
-  it "should transform uris" do
-    actual = subject.apply(iri: "info:a")
-    expect(actual).to eq RDF::URI.new("info:a")
+    it "handles strings" do
+      actual = subject.apply parser.parse('"xyz"')
+      expect(actual).to eq RDF::Literal.new("xyz")
+    end
+
+    it "handles langstrings" do
+      actual = subject.apply parser.parse('"xyz"@fr')
+      expect(actual).to eq RDF::Literal.new("xyz", language: 'fr')
+    end
+
+    it "handles typed literals" do
+      actual = subject.apply parser.parse('"xyz"^^info:x')
+      expect(actual).to eq RDF::Literal.new("xyz", datatype: RDF::URI.new("info:x"))
+    end
+
+    it "handles integers" do
+      actual = subject.apply parser.parse("0")
+      expect(actual).to eq RDF::Literal.new(0)
+    end
+
+    it "handles decimals" do
+      actual = subject.apply parser.parse("0.01")
+      expect(actual).to eq RDF::Literal.new(0.01)
+    end
+
+    it "handles doubles" do
+      actual = subject.apply parser.parse("1e-5")
+      expect(actual).to eq RDF::Literal.new(0.00001)
+    end
   end
 
   it "should transform prefix + localNames" do

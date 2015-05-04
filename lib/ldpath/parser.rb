@@ -126,18 +126,22 @@ module Ldpath
 
     # "xyz"; 0.123e52; true
     rule(:literal) do
-      rdf_literal | numeric_literal | boolean_literal
+      (
+        rdf_literal |
+          numeric_literal |
+          boolean_literal
+      ).as(:literal)
     end
 
     # "xyz"; "xyz"^^a; "xyz"@en
     rule(:rdf_literal) do
-      string.as(:string) >> lang >> identifier.as(:lang) |
-        string.as(:string) >> type >> iri.as(:type) |
+      string >> lang >> identifier.as(:lang) |
+        string >> type >> iri.as(:type) |
         string
     end
 
     rule(:node) do
-      iri.as(:iri) | literal.as(:literal)
+      iri | literal
     end
 
     # @prefix id = iri ;

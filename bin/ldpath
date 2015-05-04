@@ -3,7 +3,6 @@
 require 'optparse'
 require 'open-uri'
 require 'ldpath'
-require 'byebug'
 
 begin
   require 'rest-client'
@@ -11,10 +10,10 @@ begin
 end
 
 options = {}
-OptionParser.new do |opts|
+opt_parser = OptionParser.new do |opts|
   opts.banner = "Usage: ldpath [options] URI"
 
-  opts.on("--program=STRING_URI_OR_FILE", "LDPath program to run (- for STDIN)") do |program|
+  opts.on("--program=STRING_URI_OR_FILE", "LDPath program to run (reads from STDIN by default)") do |program|
     if File.exists?(program) || program =~ /^http/
       options[:program] = open(program).read
     elsif program.strip == "-"
@@ -23,8 +22,17 @@ OptionParser.new do |opts|
       options[:program] = program
     end
   end
-end.parse!
+end
+
+opt_parser.parse!
 
 uri = ARGV.shift
+
+if uri.nil?
+  $stderr.puts opt_parser
+  fail OptionParser::MissingArgument, "URI" unless uri
+end
+
+options[:program] ||= $stdin.read
 
 puts Ldpath::Program.parse(options[:program]).evaluate(RDF::URI.new(uri)).to_json

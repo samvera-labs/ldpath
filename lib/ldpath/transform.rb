@@ -79,7 +79,7 @@ module Ldpath
       PropertySelector.new property
     end
     
-    rule(loose_property: simple(:property)) do
+    rule(loose: simple(:loose), property: simple(:property)) do
       LoosePropertySelector.new property
     end
 
@@ -87,7 +87,7 @@ module Ldpath
       WildcardSelector.new
     end
 
-    rule(reverse_property: simple(:property)) do
+    rule(reverse: simple(:reverse), property: simple(:property)) do
       ReversePropertySelector.new property
     end
 

@@ -40,7 +40,25 @@ module Ldpath
     rule(:exponent) { match('[Ee]') >> match("[+-]").maybe >> match("\\d+") }
     rule(:numeric_literal) { integer | decimal | double }
     rule(:boolean_literal) { str('true') | str('false') }
-    
+
+    rule(:string) { string_literal_quote | string_literal_single_quote | string_literal_long_single_quote | string_literal_long_quote }
+
+    rule(:string_literal_quote) {
+      str('"') >> (match("[^\\\"\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str('"')
+    }
+
+    rule(:string_literal_single_quote) {
+      str("'") >> (match("[^'\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str("'")
+    }
+
+    rule(:string_literal_long_quote) {
+      str('"""') >> (str('"""').absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str('"""')
+    }
+
+    rule(:string_literal_long_single_quote) {
+      str("'''") >> (str("'''").absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str("'''")
+    }
+
     # operators
     rule(:self_op) { str(".") }
     rule(:and_op) { str("&") }
@@ -69,6 +87,7 @@ module Ldpath
     rule(:k_filter) { str("@filter")}
     rule(:k_boost) { str("@boost")}
 
+    # iris
     rule(:iri) do
       iriref |
       prefixed_name
@@ -105,28 +124,12 @@ module Ldpath
       pn_chars_base | match("[0-9\u00B7\u0300-\u036F\u203F-\u2040_-]")
     }
 
-    rule(:string) { string_literal_quote | string_literal_single_quote | string_literal_long_single_quote | string_literal_long_quote }
-
-    rule(:string_literal_quote) {
-      str('"') >> (match("[^\\\"\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str('"')
-    }
-
-    rule(:string_literal_single_quote) {
-      str("'") >> (match("[^'\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str("'")
-    }
-
-    rule(:string_literal_long_quote) {
-      str('"""') >> (str('"""').absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str('"""')
-    }
-
-    rule(:string_literal_long_single_quote) {
-      str("'''") >> (str("'''").absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str("'''")
-    }
-
+    # "xyz"; 0.123e52; true
     rule(:literal) {
       rdf_literal | numeric_literal | boolean_literal
     }
 
+    # "xyz"; "xyz"^^a; "xyz"@en
     rule(:rdf_literal) {
       string >> (literal_language_test | literal_type_test).maybe
     }
@@ -151,6 +154,7 @@ module Ldpath
       iri_list.as(:graphs) >> wsp? >> scolon
     }
     
+    # <info:a>, <info:b>
     rule(:iri_list) {
       iri.as(:iri) >>
       (
@@ -186,16 +190,19 @@ module Ldpath
       iri | identifier
     }
 
+    # xsd:string
     rule(:field_type) {
       iri.as(:field_type) >> field_type_options.maybe
     }
 
+    # ( x = "xyz", y = "abc" )
     rule(:field_type_options) {
       str("(") >> wsp? >> (field_type_option >> (wsp? >> comma >> wsp? >> field_type_option).repeat).as(:options) >> wsp? >> str(")")
     }
 
+    # x = "xyz"
     rule(:field_type_option) {
-      identifier.as(:key) >> wsp? >> assign >> wsp? >> string.as(:value)
+      identifier.as(:key) >> wsp? >> assign >> wsp? >> literal.as(:value)
     }
     
     # selector groups
@@ -207,24 +214,29 @@ module Ldpath
       )
     }
 
+    # &; |
     rule(:compound_operator) { and_op | or_op }
 
+    # a & b; a | b; a / b
     rule(:compound_or_path_selector) {
       path_selector | compound_selector
     }
 
+    # a & b; a | b
     rule(:compound_selector) {
       atomic_or_testing_or_path_selector.as(:left) >> wsp? >>
       compound_operator.as(:op) >> wsp? >>
       selector.as(:right)
     }
 
+    # a / b
     rule(:path_selector) {
       atomic_or_testing_selector.as(:left) >> wsp? >>
       p_sep.as(:op) >> wsp? >>
       atomic_or_testing_or_path_selector.as(:right)
     }
 
+    # info:a[is-a z]
     rule(:testing_selector) {
       atomic_selector.as(:delegate) >>
       str("[") >> wsp? >>
@@ -247,7 +259,6 @@ module Ldpath
       )
     }    
 
-
     rule(:atomic_or_testing_selector) {
       (testing_selector | atomic_selector)
     }
@@ -263,7 +274,14 @@ module Ldpath
     
     # fn:x() or fn:x(1,2,3)
     rule(:function_selector) {
-      func >> identifier.as(:fname) >> str("()") |
+      function_without_args | function_with_arglist
+    }
+
+    rule(:function_without_args) {
+      func >> identifier.as(:fname) >> str("()")
+    }
+
+    rule(:function_with_arglist) {
       func >> identifier.as(:fname) >> str("(") >> wsp? >> arglist.as(:arglist) >> wsp? >> str(")")
     }
     
@@ -278,9 +296,9 @@ module Ldpath
     
     # xyz
     rule(:loose_property_selector) {
-      loose >> 
+      loose.as(:loose) >> 
       wsp? >> 
-      iri.as(:loose_property)
+      iri.as(:property)
     }
 
     # xyz
@@ -295,14 +313,14 @@ module Ldpath
 
     # ^xyz
     rule(:reverse_property_selector) {
-      inverse >> iri.as(:reverse_property)
+      inverse.as(:reverse) >> iri.as(:property)
     }
     
     rule(:string_constant_selector) {
       string
     }
     
-    # (x)*
+    # (x)?; (x)*; (x)+; (x){3,5}
     rule(:recursive_path_selector) {
       str("(") >> wsp? >>
       selector.as(:delegate) >> wsp? >> 
@@ -310,6 +328,7 @@ module Ldpath
       range.as(:repeat)
     }
 
+    # ?; *; +; {3,5}; {,5}; {3,}
     rule(:range) {
       (
         star |
@@ -319,12 +338,14 @@ module Ldpath
       ).as(:range)
     }
     
+    # (<info:a>)
     rule(:grouped_selector) {
       str("(") >> wsp? >> 
       selector >> wsp? >> 
       str(")")
     }
 
+    # ?<a>(<info:a>)
     rule(:tap_selector) {
       question >>
       str("<") >> wsp? >>
@@ -406,14 +427,7 @@ module Ldpath
     }
     
     rule(:function_test) {
-      (
-      func >> identifier.as(:fname) >> str("()") |
-      func >> identifier.as(:fname) >> str("(") >>
-        wsp? >> 
-          arglist.as(:arglist) >>
-        wsp? >> 
-      str(")")
-      )
+      function_without_args | function_with_arglist
     }
 
     rule(:path_test) {

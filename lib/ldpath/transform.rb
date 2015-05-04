@@ -36,6 +36,7 @@ module Ldpath
     rule(decimal: simple(:decimal)) { decimal.to_f }
     rule(string: simple(:string), lang: simple(:lang)) { RDF::Literal.new(string, language: lang) }
     rule(string: simple(:string), type: simple(:type)) { RDF::Literal.new(string, datatype: RDF::URI.new(type)) }
+    rule(string: simple(:string)) { string }
     rule(literal: simple(:literal)) do
       case literal
       when RDF::Literal

@@ -44,19 +44,19 @@ module Ldpath
     rule(:string) { string_literal_quote | string_literal_single_quote | string_literal_long_single_quote | string_literal_long_quote }
 
     rule(:string_literal_quote) do
-      str('"') >> (match("[^\\\"\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str('"')
+      str('"') >> (match("[^\\\"\\\\\\r\\n]") | echar | uchar).repeat.as(:string) >> str('"')
     end
 
     rule(:string_literal_single_quote) do
-      str("'") >> (match("[^'\\\\\\r\\n]") | echar | uchar).repeat.as(:literal) >> str("'")
+      str("'") >> (match("[^'\\\\\\r\\n]") | echar | uchar).repeat.as(:string) >> str("'")
     end
 
     rule(:string_literal_long_quote) do
-      str('"""') >> (str('"""').absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str('"""')
+      str('"""') >> (str('"""').absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:string) >> str('"""')
     end
 
     rule(:string_literal_long_single_quote) do
-      str("'''") >> (str("'''").absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:literal) >> str("'''")
+      str("'''") >> (str("'''").absent? >> match("[^\\\\]") | echar | uchar).repeat.as(:string) >> str("'''")
     end
 
     # operators

@@ -126,6 +126,10 @@ module Ldpath
       TapSelector.new identifier.to_s, tap
     end
 
+    rule(not: simple(:not), property: sequence(:property)) do
+      NegatedPropertySelector.new *property
+    end
+
     ### Test Selectors
 
     rule(delegate: subtree(:delegate), test: subtree(:test)) do
@@ -144,8 +148,8 @@ module Ldpath
       TypeTest.new type
     end
 
-    rule(not: subtree(:not_op)) do
-      NotTest.new not_op[:delegate]
+    rule(not: simple(:not_op), delegate: simple(:delegate)) do
+      NotTest.new delegate
     end
 
     rule(and: subtree(:op)) do

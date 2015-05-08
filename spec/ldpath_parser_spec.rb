@@ -200,11 +200,15 @@ describe Ldpath::Parser do
       end
 
       it "tap_selector" do
-        subject.selector.parse('?<a><info:a>')
+        subject.selector.parse('?<__autocomplete>fn:predicates()')
       end
 
       it "loose_selector" do
         subject.selector.parse('~<info:a>')
+      end
+
+      it "negated property selector" do
+        subject.selector.parse('!<info:a>')
       end
     end
 

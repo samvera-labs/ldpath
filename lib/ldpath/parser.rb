@@ -261,7 +261,8 @@ module Ldpath
         literal_selector |
         recursive_path_selector |
         grouped_selector |
-        tap_selector
+        tap_selector |
+        not_property_selector
       )
     end
 
@@ -322,6 +323,14 @@ module Ldpath
       inverse.as(:reverse) >> iri.as(:property)
     end
 
+    rule(:not_property_selector) do
+      not_one_property_selector
+    end
+
+    rule(:not_one_property_selector) do
+      not_op.as(:not) >> iri.repeat(1, 1).as(:property)
+    end
+
     rule(:literal_selector) do
       literal.as(:literal)
     end
@@ -355,7 +364,7 @@ module Ldpath
     rule(:tap_selector) do
       question >>
         str("<") >> wsp? >>
-        identifier.as(:identifier) >> wsp? >>
+        (str(">").absent? >> any).repeat(1).as(:identifier) >> wsp? >>
         str(">") >> wsp? >>
         (atomic_selector).as(:tap)
     end
@@ -386,9 +395,7 @@ module Ldpath
     end
 
     rule(:not_test) do
-      (
-        not_op >> node_test.as(:delegate)
-      ).as(:not)
+      not_op.as(:not) >> node_test.as(:delegate)
     end
 
     rule(:and_test) do

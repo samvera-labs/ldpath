@@ -68,6 +68,19 @@ module Ldpath
     end
   end
 
+  class NegatedPropertySelector < Selector
+    attr_reader :properties
+    def initialize(*properties)
+      @properties = properties
+    end
+
+    def evaluate_one(uri, context)
+      context.query([uri, nil, nil]).reject do |result|
+        properties.include? result.predicate
+      end.map(&:object)
+    end
+  end
+
   class WildcardSelector < Selector
     def evaluate_one(uri, context)
       context.query([uri, nil, nil]).map(&:object)

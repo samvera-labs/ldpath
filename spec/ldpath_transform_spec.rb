@@ -73,6 +73,16 @@ describe Ldpath::Transform do
     expect(mapping.selector.property).to eq RDF::URI.new("info:a")
   end
 
+  it "should transform negated property selectors" do
+    actual = subject.apply parser.parse("xyz = !info:a ;\n")
+
+    mapping = actual.first
+    expect(mapping).to be_a_kind_of Ldpath::FieldMapping
+    expect(mapping.name).to eq "xyz"
+    expect(mapping.selector).to be_a_kind_of Ldpath::NegatedPropertySelector
+    expect(mapping.selector.properties).to include RDF::URI.new("info:a")
+  end
+
   describe "recursive properties" do
     it "is a zero-or-one matcher" do
       actual = subject.apply parser.parse("xyz = (info:a)? ;\n")

@@ -106,17 +106,12 @@ module Ldpath
     end
 
     rule(range: subtree(:range)) do
-      case range
-      when "*"
-        0..Infinity
-      when "+"
-        1..Infinity
-      when "?"
-        0..1
-      else
-        range.fetch(:min, 0).to_i..range.fetch(:max, Infinity).to_f
-      end
+      range.fetch(:min, 0).to_i..range.fetch(:max, Infinity).to_f
     end
+
+    rule(range: '*') { 0..Infinity }
+    rule(range: '+') { 1..Infinity }
+    rule(range: '?') { 0..1 }
 
     rule(delegate: subtree(:delegate), repeat: simple(:repeat)) do
       RecursivePathSelector.new delegate, repeat
@@ -169,15 +164,17 @@ module Ldpath
     end
 
     ### Compound Selectors
-    rule(left: subtree(:left), op: simple(:op), right: subtree(:right)) do
-      case op
-      when "/"
-        PathSelector.new left, right
-      when "|"
-        UnionSelector.new left, right
-      when "&"
-        IntersectionSelector.new left, right
-      end
+
+    rule(op: '/', left: subtree(:left), right: subtree(:right)) do
+      PathSelector.new left, right
+    end
+
+    rule(op: '|', left: subtree(:left), right: subtree(:right)) do
+      UnionSelector.new left, right
+    end
+
+    rule(op: '&', left: subtree(:left), right: subtree(:right)) do
+      IntersectionSelector.new left, right
     end
 
     Infinity = 1.0 / 0.0

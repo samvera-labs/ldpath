@@ -202,7 +202,7 @@ module Ldpath
 
     # ( x = "xyz", y = "abc" )
     rule(:field_type_options) do
-      str("(") >> wsp? >> (field_type_option >> (wsp? >> comma >> wsp? >> field_type_option).repeat).as(:options) >> wsp? >> str(")")
+      group(field_type_option >> (wsp? >> comma >> wsp? >> field_type_option).repeat).as(:options)
     end
 
     # x = "xyz"
@@ -284,11 +284,11 @@ module Ldpath
     end
 
     rule(:function_without_args) do
-      func >> identifier.as(:fname) >> str("()")
+      func >> identifier.as(:fname) >> group(wsp?)
     end
 
     rule(:function_with_arglist) do
-      func >> identifier.as(:fname) >> str("(") >> wsp? >> arglist.as(:arglist) >> wsp? >> str(")")
+      func >> identifier.as(:fname) >> group(arglist.as(:arglist))
     end
 
     rule(:arglist) do
@@ -336,9 +336,7 @@ module Ldpath
 
     # (x)?; (x)*; (x)+; (x){3,5}
     rule(:recursive_path_selector) do
-      str("(") >> wsp? >>
-        selector.as(:delegate) >> wsp? >>
-        str(")") >>
+      group(selector.as(:delegate)) >>
         range.as(:repeat)
     end
 
@@ -354,9 +352,7 @@ module Ldpath
 
     # (<info:a>)
     rule(:grouped_selector) do
-      str("(") >> wsp? >>
-        selector >> wsp? >>
-        str(")")
+      group(selector)
     end
 
     # ?<a>(<info:a>)
@@ -387,9 +383,7 @@ module Ldpath
     end
 
     rule(:grouped_test) do
-      str("(") >> wsp? >>
-        node_test >> wsp? >>
-        str(")")
+      group(node_test)
     end
 
     rule(:not_test) do
@@ -437,6 +431,12 @@ module Ldpath
         testing_selector |
         atomic_selector
       )
+    end
+
+    def group atom
+      str("(") >> wsp? >>
+        atom >> wsp? >>
+        str(")")
     end
   end
 end

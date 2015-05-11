@@ -212,6 +212,20 @@ describe Ldpath::Parser do
       end
     end
 
+    describe "tests" do
+      it "should pass a simple property test" do
+        subject.selector.parse('.[info:a]')
+      end
+
+      it "should pass a property test with '&'" do
+        subject.selector.parse('.[info:a & info:b]')
+      end
+
+      it "should pass a property test with '|'" do
+        subject.selector.parse('.[info:a | info:b]')
+      end
+    end
+
     describe "integration tests" do
       it "should parse a simple example" do
         tree = subject.parse <<-EOF

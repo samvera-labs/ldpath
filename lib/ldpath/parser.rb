@@ -373,8 +373,7 @@ module Ldpath
     rule(:node_test) do
       grouped_test |
         not_test |
-        and_test |
-        or_test |
+        compound_test |
         atomic_node_test
     end
 
@@ -397,20 +396,10 @@ module Ldpath
       not_op.as(:not) >> node_test.as(:delegate)
     end
 
-    rule(:and_test) do
-      (
-        atomic_node_test.as(:left) >> wsp? >>
-        and_op >> wsp? >>
-        node_test.as(:right)
-      ).as(:and)
-    end
-
-    rule(:or_test) do
-      (
-        atomic_node_test.as(:left) >> wsp? >>
-        or_op >> wsp? >>
-        node_test.as(:right)
-      ).as(:or)
+    rule(:compound_test) do
+      atomic_node_test.as(:left_test) >> wsp? >>
+        compound_operator.as(:op) >> wsp? >>
+        node_test.as(:right_test)
     end
 
     # @en

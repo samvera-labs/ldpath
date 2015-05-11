@@ -147,12 +147,12 @@ module Ldpath
       NotTest.new delegate
     end
 
-    rule(and: subtree(:op)) do
-      AndTest.new op[:left], op[:right]
+    rule(op: '|', left_test: subtree(:left_test), right_test: subtree(:right_test)) do
+      OrTest.new left_test, right_test
     end
 
-    rule(or: subtree(:op)) do
-      OrTest.new op[:left], op[:right]
+    rule(op: '&', left_test: subtree(:left_test), right_test: subtree(:right_test)) do
+      AndTest.new left_test, right_test
     end
 
     rule(is: subtree(:is)) do

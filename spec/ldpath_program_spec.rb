@@ -48,7 +48,7 @@ EOF
       graph << [child, RDF::Vocab::DC.title, "Child title"]
       graph << [parent, RDF::Vocab::DC.isPartOf, grandparent]
 
-      result = subject.evaluate object, graph
+      result = subject.evaluate object, context: graph
 
       expect(result["title"]).to match_array "Hello, world!"
       expect(result["parent_title"]).to match_array "Parent title"
@@ -107,7 +107,7 @@ EOF
     end
 
     subject do
-      program.evaluate object, graph
+      program.evaluate object, context: graph
     end
 
     describe "concat" do
@@ -236,7 +236,7 @@ child_title_with_tap = dcterms:hasPart / ?<tap>fn:predicates() / dcterms:title :
     end
 
     it "should work" do
-      result = subject.evaluate object, graph
+      result = subject.evaluate object, context: graph
       expect(result["child_title_with_tap"]).to eq result["child_title"]
       expect(result["tap"]).to eq ["http://purl.org/dc/terms/title"]
     end
@@ -267,7 +267,7 @@ title_with_loose =  ~dc:title :: xsd:string ;
     end
 
     it "should work" do
-      result = subject.evaluate object, graph
+      result = subject.evaluate object, context: graph
       expect(result["title_with_loose"]).to eq result["title"]
     end
   end
@@ -296,12 +296,12 @@ title_with_loose =  ~dc:title :: xsd:string ;
     end
 
     it "should work" do
-      result = subject.evaluate object, graph
+      result = subject.evaluate object, context: graph
       expect(result["title"]).to eq ["Title"]
     end
 
     it "filters objects that don't match" do
-      result = subject.evaluate other_object, graph
+      result = subject.evaluate other_object, context: graph
       expect(result).to be_empty
     end
   end

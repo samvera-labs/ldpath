@@ -10,6 +10,7 @@ module Ldpath
   require 'ldpath/transform'
   require 'ldpath/functions'
   require 'ldpath/program'
+  require 'ldpath/result'
 
   class << self
     def evaluate(program, uri, context)

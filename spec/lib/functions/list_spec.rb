@@ -12,7 +12,7 @@ describe "LDPath list functions" do
   end
 
   subject do
-    program.evaluate object, graph
+    program.evaluate object, context: graph
   end
 
   describe "fn:flatten" do

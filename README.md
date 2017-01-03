@@ -28,7 +28,7 @@ EOF
 
 uri = RDF::URI.new "info:a"
 
-context = RDF::Graph.new << [uri, RDF::DC.title, "Some Title"]
+context = RDF::Graph.new << [uri, RDF::Vocab::DC.title, "Some Title"]
 
 program = Ldpath::Program.parse my_program
 output = program.evaluate uri, context

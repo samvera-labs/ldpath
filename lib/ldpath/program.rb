@@ -68,9 +68,17 @@ module Ldpath
         h[m.name] += case m.selector
                      when Selector
                        m.selector.evaluate(self, uri, context).map do |x|
-                         next x unless m.field_type
-                         RDF::Literal.new(x.to_s, datatype: m.field_type).canonicalize.object
+                         v = if x.is_a? RDF::Literal
+                               x.canonicalize.object
+                             else
+                               x
+                             end
+
+                         next v unless m.field_type
+                         RDF::Literal.new(v.to_s, datatype: m.field_type).canonicalize.object
                        end
+                     when RDF::Literal
+                       Array(m.selector.canonicalize.object)
                      else
                        Array(m.selector)
                      end

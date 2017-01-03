@@ -67,7 +67,7 @@ module Ldpath
 
     # collections
     def flatten(uri, context, lists)
-      Array(lists).flatten.map { |x| RDF::List.new(x, context).to_a }.flatten
+      Array(lists).flatten.map { |x| RDF::List.new(subject: x, graph: context).to_a }.flatten
     end
 
     def get(uri, context, list, idx)

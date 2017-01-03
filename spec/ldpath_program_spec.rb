@@ -36,17 +36,17 @@ EOF
     end
 
     it "should work" do
-      graph << [object, RDF::DC.title, "Hello, world!"]
-      graph << [object, RDF::DC.isPartOf, parent]
-      graph << [object, RDF::DC.description, RDF::Literal.new("English!", language: "en")]
-      graph << [object, RDF::DC.description, RDF::Literal.new("French!", language: "fr")]
+      graph << [object, RDF::Vocab::DC.title, "Hello, world!"]
+      graph << [object, RDF::Vocab::DC.isPartOf, parent]
+      graph << [object, RDF::Vocab::DC.description, RDF::Literal.new("English!", language: "en")]
+      graph << [object, RDF::Vocab::DC.description, RDF::Literal.new("French!", language: "fr")]
       graph << [object, RDF::URI.new("info:intProperty"), 1]
       graph << [object, RDF::URI.new("info:intProperty"), "garbage"]
       graph << [object, RDF::URI.new("info:numericProperty"), "1"]
-      graph << [parent, RDF::DC.title, "Parent title"]
-      graph << [child, RDF::DC.isPartOf, object]
-      graph << [child, RDF::DC.title, "Child title"]
-      graph << [parent, RDF::DC.isPartOf, grandparent]
+      graph << [parent, RDF::Vocab::DC.title, "Parent title"]
+      graph << [child, RDF::Vocab::DC.isPartOf, object]
+      graph << [child, RDF::Vocab::DC.title, "Child title"]
+      graph << [parent, RDF::Vocab::DC.isPartOf, grandparent]
 
       result = subject.evaluate object, graph
 
@@ -97,11 +97,11 @@ EOF
 
     let(:graph) do
       graph = RDF::Graph.new
-      graph << [object, RDF::DC.title, "Hello, world!"]
-      graph << [object, RDF::DC.description, "Description"]
-      graph << [object, RDF::DC.hasPart, "a"]
-      graph << [object, RDF::DC.hasPart, "b"]
-      graph << [object, RDF::DC.hasPart, "c"]
+      graph << [object, RDF::Vocab::DC.title, "Hello, world!"]
+      graph << [object, RDF::Vocab::DC.description, "Description"]
+      graph << [object, RDF::Vocab::DC.hasPart, "a"]
+      graph << [object, RDF::Vocab::DC.hasPart, "b"]
+      graph << [object, RDF::Vocab::DC.hasPart, "c"]
 
       graph
     end
@@ -219,9 +219,9 @@ EOF
     let(:graph) do
       graph = RDF::Graph.new
 
-      graph << [object, RDF::DC.title, "Object"]
-      graph << [child, RDF::DC.title, "Child"]
-      graph << [object, RDF::DC.hasPart, child]
+      graph << [object, RDF::Vocab::DC.title, "Object"]
+      graph << [child, RDF::Vocab::DC.title, "Child"]
+      graph << [object, RDF::Vocab::DC.hasPart, child]
 
       graph
     end
@@ -250,9 +250,9 @@ child_title_with_tap = dcterms:hasPart / ?<tap>fn:predicates() / dcterms:title :
     let(:graph) do
       graph = RDF::Graph.new
 
-      graph << [object, RDF::DC.title, "Object"]
-      graph << [child, RDF::DC.title, "Child"]
-      graph << [object, RDF::DC.hasPart, child]
+      graph << [object, RDF::Vocab::DC.title, "Object"]
+      graph << [child, RDF::Vocab::DC.title, "Child"]
+      graph << [object, RDF::Vocab::DC.hasPart, child]
 
       graph
     end
@@ -288,9 +288,9 @@ title_with_loose =  ~dc:title :: xsd:string ;
     let(:graph) do
       graph = RDF::Graph.new
 
-      graph << [object, RDF.type, RDF::DC.Agent]
-      graph << [object, RDF::DC.title, "Title"]
-      graph << [other_object, RDF::DC.title, "Other Title"]
+      graph << [object, RDF.type, RDF::Vocab::DC.Agent]
+      graph << [object, RDF::Vocab::DC.title, "Title"]
+      graph << [other_object, RDF::Vocab::DC.title, "Other Title"]
 
       graph
     end

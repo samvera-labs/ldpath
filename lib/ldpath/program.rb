@@ -1,7 +1,5 @@
 module Ldpath
   class Program
-    include Ldpath::Functions
-
     ParseError     = Class.new StandardError
 
     class << self
@@ -28,81 +26,20 @@ module Ldpath
       end
     end
 
-    attr_reader :mappings, :cache, :loaded, :prefixes, :filters
+    attr_reader :mappings, :prefixes, :filters
     def initialize(mappings, options = {})
       @mappings ||= mappings
-      @cache = options[:cache] || RDF::Util::Cache.new
       @prefixes = options[:prefixes] || {}
       @filters = options[:filters] || []
-      @loaded = {}
     end
 
-    def loading(uri, context)
-      if uri.to_s =~ /^http/ && !loaded[uri.to_s]
-        context << load_graph(uri.to_s)
-      end
-    end
-
-    def load_graph(uri)
-      cache[uri] ||= begin
-        Ldpath.logger.debug "[#{object_id}] Loading #{uri.inspect}"
-
-        reader_types = RDF::Format.reader_types.reject { |t| t.to_s =~ /html/ }.map do |t|
-          t.to_s =~ /text\/(?:plain|html)/ ? "#{t};q=0.5" : t
-        end
-
-        RDF::Graph.load(uri, headers: { 'Accept' => reader_types.join(", ") }).tap { loaded[uri] = true }
-      end
-    end
-
-    def evaluate(uri, context = nil)
-      h = {}
-      context ||= load_graph(uri.to_s)
-
+    def evaluate(uri, context: nil)
+      result = Ldpath::Result.new(self, uri, context: context)
       unless filters.empty?
-        return h unless filters.all? { |f| f.evaluate(self, uri, context) }
+        return {} unless filters.all? { |f| f.evaluate(result, uri, result.context) }
       end
 
-      mappings.each do |m|
-        h[m.name] ||= []
-        h[m.name] += case m.selector
-                     when Selector
-                       m.selector.evaluate(self, uri, context).map do |x|
-                         v = if x.is_a? RDF::Literal
-                               x.canonicalize.object
-                             else
-                               x
-                             end
-
-                         next v unless m.field_type
-                         RDF::Literal.new(v.to_s, datatype: m.field_type).canonicalize.object
-                       end
-                     when RDF::Literal
-                       Array(m.selector.canonicalize.object)
-                     else
-                       Array(m.selector)
-                     end
-      end
-
-      h.merge(meta)
-    end
-
-    def meta
-      @meta ||= {}
-    end
-
-    def func_call(fname, uri, context, *arguments)
-      if function_method? fname
-        public_send(fname, uri, context, *arguments)
-      else
-        raise "No such function: #{fname}"
-      end
-    end
-
-    private
-
-    def function_method?(function)
-      Functions.public_instance_methods(false).include? function.to_sym
+      result.to_hash
     end
   end
 end

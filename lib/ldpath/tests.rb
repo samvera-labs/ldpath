@@ -10,7 +10,7 @@ module Ldpath
     def evaluate(program, uris, context)
       entries = delegate.evaluate program, uris, context
       entries.select do |uri|
-        Array(test.evaluate(program, uri, context)).any? do |x|
+        enum_wrap(test.evaluate(program, uri, context)).any? do |x|
           x
         end
       end
@@ -53,7 +53,7 @@ module Ldpath
     end
 
     def evaluate(program, uri, context)
-      !Array(delegate.evaluate(program, uri, context)).any? { |x| x }
+      !enum_wrap(delegate.evaluate(program, uri, context)).any? { |x| x }
     end
   end
 
@@ -79,8 +79,8 @@ module Ldpath
     end
 
     def evaluate(program, uri, context)
-      left.evaluate(program, uri, context).compact.any? &&
-        right.evaluate(program, uri, context).compact.any?
+      left.evaluate(program, uri, context).any? &&
+        right.evaluate(program, uri, context).any?
     end
   end
 
@@ -93,7 +93,7 @@ module Ldpath
     end
 
     def evaluate(program, uri, context)
-      left.evaluate(program, uri, context).compact.include?(right)
+      left.evaluate(program, uri, context).include?(right)
     end
   end
 end

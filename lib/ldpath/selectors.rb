@@ -1,14 +1,43 @@
 module Ldpath
   class Selector
     def evaluate(program, uris, context)
-      Array(uris).map do |uri|
+      return to_enum(:evaluate, program, uris, context) unless block_given?
+      enum_wrap(uris).map do |uri|
         loading program, uri, context
-        evaluate_one uri, context
-      end.flatten.compact
+        enum_flatten_one(evaluate_one(uri, context)).each do |x|
+          yield x unless x.nil?
+        end
+      end
     end
 
     def loading(program, uri, context)
       program.loading uri, context
+    end
+
+    protected
+
+    def enum_wrap(object)
+      if object.nil?
+        []
+      elsif object.respond_to?(:to_ary)
+        object.to_ary || [object]
+      elsif object.is_a? Hash
+        [object]
+      elsif object.is_a? Enumerable
+        object
+      else
+        [object]
+      end
+    end
+    
+    def enum_flatten_one(object)
+      return to_enum(:enum_flatten_one, object) unless block_given?
+
+      enum_wrap(object).each do |e|
+        enum_wrap(e).each do |v|
+          yield v
+        end
+      end
     end
   end
 
@@ -27,7 +56,9 @@ module Ldpath
     end
 
     def evaluate(program, uris, context)
-      Array(uris).map do |uri|
+      return to_enum(:evaluate, program, uris, context) unless block_given?
+
+      enum_wrap(uris).map do |uri|
         loading program, uri, context
         args = arguments.map do |i|
           case i
@@ -37,8 +68,10 @@ module Ldpath
             i
           end
         end
-        program.func_call fname, uri, context, *args
-      end.flatten.compact
+        enum_flatten_one(program.func_call(fname, uri, context, *args)).each do |x|
+          yield x unless x.nil?
+        end
+      end
     end
   end
 
@@ -49,7 +82,7 @@ module Ldpath
     end
 
     def evaluate_one(uri, context)
-      context.query([uri, property, nil]).map(&:object)
+      context.query([uri, property, nil]).lazy.map(&:object)
     end
   end
 
@@ -62,7 +95,7 @@ module Ldpath
     def evaluate_one(uri, context)
       return PropertySelector.new(property).evaluate_one(uri_context) unless defined? RDF::Reasoner
 
-      context.query([uri, nil, nil]).select do |result|
+      context.query([uri, nil, nil]).lazy.select do |result|
         result.predicate.entail(:subPropertyOf).include? property
       end.map(&:object)
     end
@@ -75,7 +108,7 @@ module Ldpath
     end
 
     def evaluate_one(uri, context)
-      context.query([uri, nil, nil]).reject do |result|
+      context.query([uri, nil, nil]).lazy.reject do |result|
         properties.include? result.predicate
       end.map(&:object)
     end
@@ -83,7 +116,7 @@ module Ldpath
 
   class WildcardSelector < Selector
     def evaluate_one(uri, context)
-      context.query([uri, nil, nil]).map(&:object)
+      context.query([uri, nil, nil]).lazy.map(&:object)
     end
   end
 
@@ -94,7 +127,7 @@ module Ldpath
     end
 
     def evaluate_one(uri, context)
-      context.query([nil, property, uri]).map(&:subject)
+      context.query([nil, property, uri]).lazy.map(&:subject)
     end
   end
 
@@ -106,19 +139,21 @@ module Ldpath
     end
 
     def evaluate(program, uris, context)
-      result = []
-      input = Array(uris)
+      return to_enum(:evaluate, program, uris, context) unless block_given?
+
+      input = enum_wrap(uris)
 
       Range.new(0, repeat.min, true).each do
         input = property.evaluate program, input, context
       end
 
       repeat.each_with_index do |i, idx|
-        break if input.empty? || idx > 25 # we're probably lost..
+        break if input.none? || idx > 25 # we're probably lost..
         input = property.evaluate program, input, context
-        result |= input
+        enum_wrap(input).each do |x|
+          yield x
+        end
       end
-      result.flatten.compact
     end
   end
 
@@ -131,21 +166,47 @@ module Ldpath
   end
 
   class PathSelector < CompoundSelector
-    def evaluate(program, uris, context)
+    def evaluate(program, uris, context, &block)
+      return to_enum(:evaluate, program, uris, context) unless block_given?
+
       output = left.evaluate(program, uris, context)
-      right.evaluate(program, output, context)
+      right.evaluate(program, output, context, &block)
     end
   end
 
   class UnionSelector < CompoundSelector
     def evaluate(program, uris, context)
-      left.evaluate(program, uris, context) | right.evaluate(program, uris, context)
+      return to_enum(:evaluate, program, uris, context) unless block_given?
+
+      enum_union(left.evaluate(program, uris, context), right.evaluate(program, uris, context)).each do |x|
+        yield x
+      end
+    end
+
+    private
+
+    def enum_union(left, right)
+      return to_enum(:enum_union, left, right) unless block_given?
+
+      enum_wrap(left).each do |e|
+        yield e
+      end
+
+      enum_wrap(right).each do |e|
+        yield e
+      end
     end
   end
 
   class IntersectionSelector < CompoundSelector
     def evaluate(program, uris, context)
-      left.evaluate(program, uris, context) & right.evaluate(program, uris, context)
+      return to_enum(:evaluate, program, uris, context) unless block_given?
+
+      result = left.evaluate(program, uris, context).to_a & right.evaluate(program, uris, context).to_a
+
+      result.each do |x|
+        yield x
+      end
     end
   end
 
@@ -157,12 +218,16 @@ module Ldpath
     end
 
     def evaluate(program, uris, context)
+      return to_enum(:evaluate, program, uris, context) unless block_given?
+
       program.meta[identifier] = tap.evaluate(program, uris, context).map { |x| RDF::Literal.new(x.to_s).canonicalize.object }
 
-      Array(uris).map do |uri|
+      enum_wrap(uris).map do |uri|
         loading program, uri, context
-        evaluate_one uri, context
-      end.flatten.compact
+        enum_flatten_one(evaluate_one(uri, context)).each do |x|
+          yield x unless x.nil?
+        end
+      end
     end
 
     def evaluate_one(uri, context)

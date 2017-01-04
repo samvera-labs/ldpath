@@ -2,23 +2,23 @@
 module Ldpath
   module Functions
     def concat(uri, context, *args)
-      args.flatten.compact.join
+      deep_flatten_compact(*args).to_a.join
     end
 
     def first(uri, context, *args)
-      args.flatten.compact.first
+      deep_flatten_compact(*args).first
     end
 
     def last(uri, context, *args)
-      args.flatten.compact.last
+      deep_flatten_compact(*args).to_a.last
     end
 
     def count(uri, context, *args)
-      args.flatten.compact.length
+      deep_flatten_compact(*args).count
     end
 
     def eq(uri, context, *args)
-      a, b, *rem = args.flatten
+      a, b, *rem = deep_flatten_compact(*args).first(3)
       unless rem.empty?
         raise "Too many arguments to fn:eq"
       end
@@ -26,7 +26,7 @@ module Ldpath
     end
 
     def ne(uri, context, *args)
-      a, b, *rem = args.flatten
+      a, b, *rem = deep_flatten_compact(*args).first(3)
       unless rem.empty?
         raise "Too many arguments to fn:ne"
       end
@@ -34,7 +34,7 @@ module Ldpath
     end
 
     def lt(uri, context, *args)
-      a, b, *rem = args.flatten
+      a, b, *rem = deep_flatten_compact(*args).first(3)
       unless rem.empty?
         raise "Too many arguments to fn:lt"
       end
@@ -42,7 +42,7 @@ module Ldpath
     end
 
     def le(uri, context, *args)
-      a, b, *rem = args.flatten
+      a, b, *rem = deep_flatten_compact(*args).first(3)
       unless rem.empty?
         raise "Too many arguments to fn:le"
       end
@@ -50,7 +50,7 @@ module Ldpath
     end
 
     def gt(uri, context, *args)
-      a, b, *rem = args.flatten
+      a, b, *rem = deep_flatten_compact(*args).first(3)
       unless rem.empty?
         raise "Too many arguments to fn:gt"
       end
@@ -58,7 +58,7 @@ module Ldpath
     end
 
     def ge(uri, context, *args)
-      a, b, *rem = args.flatten
+      a, b, *rem = deep_flatten_compact(*args).first(3)
       unless rem.empty?
         raise "Too many arguments to fn:ge"
       end
@@ -67,17 +67,23 @@ module Ldpath
 
     # collections
     def flatten(uri, context, lists)
-      Array(lists).flatten.map { |x| RDF::List.new(subject: x, graph: context).to_a }.flatten
+      return to_enum(:flatten, uri, context, lists) unless block_given?
+
+      deep_flatten_compact(lists).each do |x|
+        RDF::List.new(subject: x, graph: context).to_a.each do |i|
+          yield i
+        end
+      end
     end
 
     def get(uri, context, list, idx)
       idx = idx.respond_to?(:to_i) ? idx.to_i : idx.to_s.to_i
 
-      flatten(uri, context, list)[idx]
+      flatten(uri, context, list).to_a[idx]
     end
 
     def subList(uri, context, list, idx_start, idx_end = nil)
-      arr = flatten(uri, context, list)
+      arr = flatten(uri, context, list).to_a
 
       idx_start = idx_start.respond_to?(:to_i) ? idx_start.to_i : idx_start.to_s.to_i
       idx_end &&= idx_end.respond_to?(:to_i) ? idx_end.to_i : idx_end.to_s.to_i
@@ -92,28 +98,26 @@ module Ldpath
     # dates
 
     def earliest(uri, context, *args)
-      args.flatten.min
+      deep_flatten_compact(*args).min
     end
 
     def latest(uri, context, *args)
-      args.flatten.max
+      deep_flatten_compact(*args).max
     end
 
     # math
 
     def min(uri, context, *args)
-      args.flatten.min
+      deep_flatten_compact(*args).min
     end
 
     def max(uri, context, *args)
-      args.flatten.max
+      deep_flatten_compact(*args).max
     end
 
     def round(uri, context, *args)
-      args.map do |n|
-        Array(n).map do |i|
-          i.respond_to? :round ? i.round : i
-        end
+      deep_flatten_compact(*args).map do |i|
+        i.respond_to? :round ? i.round : i
       end
     end
 
@@ -186,6 +190,20 @@ module Ldpath
       x = Array(xpath).flatten.first
       Array(node).flatten.compact.map do |n|
         Nokogiri::XML(n.to_s).xpath(x.to_s, prefixes.map { |k, v| [k, v.to_s] }).map(&:text)
+      end
+    end
+
+    private
+
+    def deep_flatten_compact(*args)
+      return to_enum(:deep_flatten_compact, *args) unless block_given?
+
+      args.each do |x|
+        if x.is_a? Enumerable
+          x.each { |y| yield y unless y.nil? }
+        else
+          yield x unless x.nil?
+        end
       end
     end
   end

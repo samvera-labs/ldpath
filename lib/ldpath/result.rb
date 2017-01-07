@@ -36,7 +36,7 @@ module Ldpath
 
     def to_hash
       h = mappings.each_with_object({}) do |mapping, hash|
-        hash[mapping.name] = evaluate(mapping)
+        hash[mapping.name] = evaluate(mapping).to_a
       end
 
       h.merge(meta)
@@ -65,15 +65,19 @@ module Ldpath
     def evaluate(mapping)
       case mapping.selector
       when Selector
-        mapping.selector.evaluate(self, uri, context).map do |x|
+        return to_enum(:evaluate, mapping) unless block_given?
+        mapping.selector.evaluate(self, uri, context).each do |x|
           v = if x.is_a? RDF::Literal
                 x.canonicalize.object
               else
                 x
               end
 
-          next v unless mapping.field_type
-          RDF::Literal.new(v.to_s, datatype: mapping.field_type).canonicalize.object
+          if mapping.field_type
+            yield RDF::Literal.new(v.to_s, datatype: mapping.field_type).canonicalize.object
+          else
+            yield v
+          end
         end
       when RDF::Literal
         Array(mapping.selector.canonicalize.object)

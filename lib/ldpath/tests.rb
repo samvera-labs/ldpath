@@ -23,11 +23,10 @@ module Ldpath
       @lang = lang
     end
 
-    def evaluate(program, uri, context)
+    def evaluate(_program, uri, _context)
       return unless uri.literal?
-      if (lang == "none" && !uri.has_language?) || uri.language == lang
-        uri
-      end
+
+      uri if (lang == "none" && !uri.has_language?) || uri.language == lang
     end
   end
 
@@ -37,11 +36,10 @@ module Ldpath
       @type = type
     end
 
-    def evaluate(program, uri, context)
+    def evaluate(program, uri, _context)
       return unless uri.literal?
-      if uri.has_datatype? && uri.datatype == type
-        uri
-      end
+
+      uri if uri.has_datatype? && uri.datatype == type
     end
   end
 

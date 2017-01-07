@@ -1,6 +1,6 @@
 module Ldpath
   class Program
-    ParseError     = Class.new StandardError
+    ParseError = Class.new StandardError
 
     class << self
       def parse(program, transform_context = {})
@@ -12,7 +12,7 @@ module Ldpath
       def load(program)
         parser.parse(program, reporter: Parslet::ErrorReporter::Deepest.new)
       rescue Parslet::ParseFailed => e
-        fail ParseError, e.cause.ascii_tree
+        raise ParseError, e.cause.ascii_tree
       end
 
       private

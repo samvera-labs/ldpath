@@ -207,7 +207,9 @@ EOF
 
     it "should work" do
       result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5.rdf")
-      expect(result["predicates"]).to include "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://purl.org/ontology/po/pid", "http://purl.org/dc/elements/1.1/title"
+      expect(result["predicates"]).to include "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                                              "http://purl.org/ontology/po/pid",
+                                              "http://purl.org/dc/elements/1.1/title"
     end
   end
 
@@ -308,7 +310,7 @@ title_with_loose =  ~dc:title :: xsd:string ;
 
   describe "error handling" do
     it "should provide a reasonable exception" do
-      expect { Ldpath::Program.parse "title .= <oops> ;" }.to raise_error /Expected "=", but got "."/
+      expect { Ldpath::Program.parse "title .= <oops> ;" }.to raise_error(/Expected "=", but got "."/)
     end
   end
 end

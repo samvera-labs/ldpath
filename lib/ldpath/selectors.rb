@@ -42,7 +42,7 @@ module Ldpath
   end
 
   class SelfSelector < Selector
-    def evaluate_one(uri, context)
+    def evaluate_one(uri, _context)
       uri
     end
   end
@@ -230,7 +230,7 @@ module Ldpath
       end
     end
 
-    def evaluate_one(uri, context)
+    def evaluate_one(uri, _context)
       uri
     end
   end

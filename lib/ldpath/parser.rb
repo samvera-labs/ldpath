@@ -361,7 +361,7 @@ module Ldpath
         str("<") >> wsp? >>
         (str(">").absent? >> any).repeat(1).as(:identifier) >> wsp? >>
         str(">") >> wsp? >>
-        (atomic_selector).as(:tap)
+        atomic_selector.as(:tap)
     end
 
     # Testing Selectors
@@ -433,7 +433,7 @@ module Ldpath
       )
     end
 
-    def group atom
+    def group(atom)
       str("(") >> wsp? >>
         atom >> wsp? >>
         str(")")

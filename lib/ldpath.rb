@@ -13,6 +13,8 @@ module Ldpath
   require 'ldpath/result'
 
   class << self
+    attr_writer :logger
+
     def evaluate(program, uri, context)
       Ldpath::Program.parse(program).evaluate(uri, context)
     end
@@ -25,10 +27,6 @@ module Ldpath
           Logger.new(STDERR)
         end
       end
-    end
-
-    def logger=(logger)
-      @logger = logger
     end
   end
 end

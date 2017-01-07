@@ -15,7 +15,7 @@ module Ldpath
           "fn"   => RDF::Vocabulary.new("http://www.newmedialab.at/lmf/functions/1.0/"), # (LMF index functions)
           "foaf" => RDF::Vocabulary.new("http://xmlns.com/foaf/0.1/"),
           "info" => RDF::Vocabulary.new("info:"),
-          "urn"  => RDF::Vocabulary.new("urn:"),
+          "urn"  => RDF::Vocabulary.new("urn:")
         }
       end
     end
@@ -122,7 +122,7 @@ module Ldpath
     end
 
     rule(not: simple(:not), property: sequence(:property)) do
-      NegatedPropertySelector.new *property
+      NegatedPropertySelector.new(*property)
     end
 
     ### Test Selectors

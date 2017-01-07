@@ -71,7 +71,7 @@ module Ldpath
     # Mappings
 
     rule(mapping: subtree(:mapping)) do
-      FieldMapping.new mapping[:name].to_s, mapping[:selector], mapping[:field_type]
+      FieldMapping.new mapping
     end
 
     ## Selectors

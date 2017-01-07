@@ -63,27 +63,7 @@ module Ldpath
     private
 
     def evaluate(mapping)
-      case mapping.selector
-      when Selector
-        return to_enum(:evaluate, mapping) unless block_given?
-        mapping.selector.evaluate(self, uri, context).each do |x|
-          v = if x.is_a? RDF::Literal
-                x.canonicalize.object
-              else
-                x
-              end
-
-          if mapping.field_type
-            yield RDF::Literal.new(v.to_s, datatype: mapping.field_type).canonicalize.object
-          else
-            yield v
-          end
-        end
-      when RDF::Literal
-        Array(mapping.selector.canonicalize.object)
-      else
-        Array(mapping.selector)
-      end
+      mapping.evaluate(self, uri, context)
     end
 
     def function_method?(function)

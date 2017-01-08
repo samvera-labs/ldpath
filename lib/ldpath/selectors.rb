@@ -143,13 +143,12 @@ module Ldpath
 
       input = enum_wrap(uris)
 
-      Range.new(0, repeat.min, true).each do
+      (0..repeat.max).each_with_index do |i, idx|
+        break if input.none? || (repeat.max == Ldpath::Transform::Infinity && idx > 25) # we're probably lost..
         input = property.evaluate program, input, context
-      end
 
-      repeat.each_with_index do |i, idx|
-        break if input.none? || idx > 25 # we're probably lost..
-        input = property.evaluate program, input, context
+        next unless idx >= repeat.min
+
         enum_wrap(input).each do |x|
           yield x
         end

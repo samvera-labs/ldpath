@@ -192,12 +192,12 @@ EOF
     end
 
     before do
-      stub_request(:get, 'http://www.bbc.co.uk/programmes/b0081dq5.nt')
+      stub_request(:get, 'http://www.bbc.co.uk/programmes/b0081dq5')
           .to_return(status: 200, body: webmock_fixture('bbc_b0081dq5.nt'), headers: { 'Content-Type' => 'application/n-triples' })
     end
 
     it "should work" do
-      result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5.nt")
+      result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5")
       expect(result["title"]).to match_array "Huw Stephens"
     end
   end
@@ -211,12 +211,12 @@ EOF
     end
 
     before do
-      stub_request(:get, 'http://www.bbc.co.uk/programmes/b0081dq5.nt')
+      stub_request(:get, 'http://www.bbc.co.uk/programmes/b0081dq5')
         .to_return(status: 200, body: webmock_fixture('bbc_b0081dq5.nt'), headers: { 'Content-Type' => 'application/n-triples' })
     end
 
     it "should work" do
-      result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5.nt")
+      result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5")
       expect(result["predicates"]).to include "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
                                               "http://purl.org/ontology/po/pid",
                                               "http://purl.org/dc/elements/1.1/title"
@@ -321,6 +321,49 @@ title_with_loose =  ~dc:title :: xsd:string ;
   describe "error handling" do
     it "should provide a reasonable exception" do
       expect { Ldpath::Program.parse "title .= <oops> ;" }.to raise_error(/Expected "=", but got "."/)
+    end
+  end
+
+  describe '#evaluate' do
+    context 'when passing limit_to_context' do
+      subject do
+        Ldpath::Program.parse <<-EOF
+@prefix madsrdf : <http://www.loc.gov/mads/rdf/v1#> ;
+@prefix schema: <http://www.w3.org/2000/01/rdf-schema#> ;
+property = madsrdf:authoritativeLabel :: xsd:string ;
+        EOF
+      end
+
+      let(:subject_uri) { RDF::URI('http://id.loc.gov/authorities/names/n79021164') }
+
+      let(:graph) do
+        graph = RDF::Graph.new
+        graph << [subject_uri, RDF::Vocab::MADS.authoritativeLabel, 'Mark Twain (passed in context)']
+        graph
+      end
+
+      before do
+        stub_request(:get, 'http://id.loc.gov/authorities/names/n79021164')
+            .to_return(status: 200, body: webmock_fixture('loc_n79021164.nt'), headers: { 'Content-Type' => 'application/n-triples' })
+      end
+
+      context 'as false' do
+        let(:expected_values) { ['Mark Twain (passed in context)', 'Twain, Mark, 1835-1910 (network call to LOC)'] }
+
+        it 'returns values from context and network call' do
+          result = subject.evaluate subject_uri, context: graph
+          expect(result['property']).to match_array expected_values
+        end
+      end
+
+      context 'as true' do
+        let(:expected_values) { ['Mark Twain (passed in context)'] }
+
+        it 'returns values from context only' do
+          result = subject.evaluate(subject_uri, context: graph, limit_to_context: true)
+          expect(result['property']).to match_array expected_values
+        end
+      end
     end
   end
 end

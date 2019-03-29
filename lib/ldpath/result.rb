@@ -3,19 +3,21 @@ module Ldpath
     include Ldpath::Functions
     attr_reader :program, :uri, :cache, :loaded
 
-    def initialize(program, uri, cache: RDF::Util::Cache.new, context: nil)
+    def initialize(program, uri, cache: RDF::Util::Cache.new, context: nil, limit_to_context: false)
       @program = program
       @uri = uri
       @cache = cache
       @loaded = {}
       @context = context
+      @limit_to_context = limit_to_context
     end
 
     def loading(uri, context)
       return unless uri.to_s =~ /^http/
       return if loaded[uri.to_s]
 
-      context << load_graph(uri.to_s)
+      context << load_graph(uri.to_s) unless limit_to_context?
+      context
     end
 
     def load_graph(uri)
@@ -72,6 +74,10 @@ module Ldpath
 
     def mappings
       program.mappings
+    end
+
+    def limit_to_context?
+      @limit_to_context
     end
   end
 end

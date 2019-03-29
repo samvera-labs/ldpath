@@ -33,8 +33,8 @@ module Ldpath
       @filters = options[:filters] || []
     end
 
-    def evaluate(uri, context: nil)
-      result = Ldpath::Result.new(self, uri, context: context)
+    def evaluate(uri, context: nil, limit_to_context: false)
+      result = Ldpath::Result.new(self, uri, context: context, limit_to_context: limit_to_context)
       unless filters.empty?
         return {} unless filters.all? { |f| f.evaluate(result, uri, result.context) }
       end

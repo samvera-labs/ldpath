@@ -12,7 +12,7 @@ module Ldpath
       def load(program)
         parser.parse(program, reporter: Parslet::ErrorReporter::Deepest.new)
       rescue Parslet::ParseFailed => e
-        raise ParseError, e.cause.ascii_tree
+        raise ParseError, e.parse_failure_cause.ascii_tree
       end
 
       private

@@ -1,3 +1,7 @@
+### 1.0.1 (2019-04-23)
+
+* update linkeddata dependency to latest version
+
 ### 1.0.0 (2019-03-29)
 
 * add ability to restrict results to passed in context

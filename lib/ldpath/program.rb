@@ -26,12 +26,14 @@ module Ldpath
       end
     end
 
-    attr_reader :mappings, :prefixes, :filters, :loader
-    def initialize(mappings, options = {})
+    attr_reader :mappings, :prefixes, :filters, :default_loader, :loaders
+    def initialize(mappings, default_loader: Ldpath::Loaders::Direct.new, prefixes: {}, filters: [], loaders: {})
       @mappings ||= mappings
-      @loader = options[:loader] || Ldpath::Loaders::Direct.new
-      @prefixes = options[:prefixes] || {}
-      @filters = options[:filters] || []
+      @default_loader = default_loader
+      @loaders = loaders
+      @prefixes = prefixes
+      @filters = filters
+
     end
 
     def evaluate(uri, context: nil, limit_to_context: false)
@@ -44,6 +46,9 @@ module Ldpath
     end
 
     def load(uri)
+      loader = loaders.find { |k, v| uri =~ k }&.last
+      loader ||= default_loader
+
       loader.load(uri)
     end
   end

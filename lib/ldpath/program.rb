@@ -26,9 +26,10 @@ module Ldpath
       end
     end
 
-    attr_reader :mappings, :prefixes, :filters
+    attr_reader :mappings, :prefixes, :filters, :loader
     def initialize(mappings, options = {})
       @mappings ||= mappings
+      @loader = options[:loader] || Ldpath::Loaders::Direct.new
       @prefixes = options[:prefixes] || {}
       @filters = options[:filters] || []
     end
@@ -43,13 +44,7 @@ module Ldpath
     end
 
     def load(uri)
-      Ldpath.logger.debug "Loading #{uri.inspect}"
-
-      reader_types = RDF::Format.reader_types.reject { |t| t.to_s =~ /html/ }.map do |t|
-        t.to_s =~ %r{text/(?:plain|html)} ? "#{t};q=0.5" : t
-      end
-
-      RDF::Graph.load(uri, headers: { 'Accept' => reader_types.join(", ") })
+      loader.load(uri)
     end
   end
 end

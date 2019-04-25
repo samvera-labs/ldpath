@@ -38,7 +38,7 @@ program = Ldpath::Program.parse my_program
 output = program.evaluate uri, context
 # => { ... }
 ```
- 
+
 ## Compatibility
 
 * Ruby 2.5 or the latest 2.4 version is recommended.  Later versions may also work.

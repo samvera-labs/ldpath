@@ -185,20 +185,56 @@ EOF
 
   describe "Data loading" do
     subject do
-      Ldpath::Program.parse <<-EOF
-@prefix dcterms : <http://purl.org/dc/terms/> ;
-title = foaf:primaryTopic / dc:title :: xsd:string ;
-EOF
+      Ldpath::Program.parse <<-EOF, context
+        @prefix dcterms : <http://purl.org/dc/terms/> ;
+        title = foaf:primaryTopic / dc:title :: xsd:string ;
+        EOF
+    end
+    let(:context) { {} }
+
+    context 'with direct loading' do
+      let(:context) { { default_loader: Ldpath::Loaders::Direct.new }}
+
+      before do
+        stub_request(:get, 'http://www.bbc.co.uk/programmes/b0081dq5')
+            .to_return(status: 200, body: webmock_fixture('bbc_b0081dq5.nt'), headers: { 'Content-Type' => 'application/n-triples' })
+      end
+
+      it "should work" do
+        result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5")
+        expect(result["title"]).to match_array "Huw Stephens"
+      end
     end
 
-    before do
-      stub_request(:get, 'http://www.bbc.co.uk/programmes/b0081dq5')
-          .to_return(status: 200, body: webmock_fixture('bbc_b0081dq5.nt'), headers: { 'Content-Type' => 'application/n-triples' })
+    context 'with an existing graph' do
+      let(:graph) { RDF::Graph.new }
+      let(:graph_loader) { Ldpath::Loaders::Graph.new graph: graph }
+      let(:context) { { default_loader: graph_loader }}
+
+      before do
+        graph << [RDF::URI('http://www.bbc.co.uk/programmes/b0081dq5'), RDF::URI('http://xmlns.com/foaf/0.1/primaryTopic'), RDF::URI('info:some_uri')]
+        graph << [RDF::URI('info:some_uri'), RDF::URI('http://purl.org/dc/elements/1.1/title'), 'Local Huw Stephens']
+      end
+
+      it "should work" do
+        result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5")
+        expect(result["title"]).to match_array "Local Huw Stephens"
+      end
     end
 
-    it "should work" do
-      result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5")
-      expect(result["title"]).to match_array "Huw Stephens"
+    context 'with linked data fragments' do
+      let(:graph_loader) { Ldpath::Loaders::LinkedDataFragment.new('http://example.com/ldf') }
+      let(:context) { { default_loader: graph_loader }}
+
+      before do
+        stub_request(:get, 'http://example.com/ldf?subject=http://www.bbc.co.uk/programmes/b0081dq5')
+            .to_return(status: 200, body: webmock_fixture('bbc_b0081dq5.nt'), headers: { 'Content-Type' => 'application/n-triples' })
+      end
+
+      it "should work" do
+        result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5")
+        expect(result["title"]).to match_array "Huw Stephens"
+      end
     end
   end
 

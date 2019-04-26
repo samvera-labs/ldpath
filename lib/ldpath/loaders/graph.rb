@@ -1,9 +1,9 @@
-class Ldpath::Loaders::Direct
+class Ldpath::Loaders::Graph
   def initialize(graph:)
     @graph = graph
   end
 
-  def load
+  def load(uri)
     @graph
   end
 end

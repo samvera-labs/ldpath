@@ -1,5 +1,5 @@
 class Ldpath::Loaders::Direct
-  def load
+  def load(uri)
     Ldpath.logger.debug "Loading #{uri.inspect}"
 
     reader_types = RDF::Format.reader_types.reject { |t| t.to_s =~ /html/ }.map do |t|

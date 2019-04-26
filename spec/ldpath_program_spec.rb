@@ -7,11 +7,13 @@ describe Ldpath::Program do
 @prefix dcterms : <http://purl.org/dc/terms/> ;
 title = dcterms:title :: xsd:string ;
 parent_title = dcterms:isPartOf / dcterms:title :: xsd:string ;
+parent_title_en = dcterms:isPartOf / dcterms:title[@en] :: xsd:string ;
 titles = dcterms:title | (dcterms:isPartOf / dcterms:title) | (^dcterms:isPartOf / dcterms:title) :: xsd:string ;
 no_titles = dcterms:title & (dcterms:isPartOf / dcterms:title) & (^dcterms:isPartOf / dcterms:title) :: xsd:string ;
 self = . :: xsd:string ;
 wildcard = * ::xsd:string ;
 child_title = ^dcterms:isPartOf / dcterms:title :: xsd:string ;
+child_description_en = ^dcterms:isPartOf / dcterms:description[@en] :: xsd:string ;
 recursive = (dcterms:isPartOf)* ;
 en_description = dcterms:description[@en] ;
 conditional = dcterms:isPartOf[dcterms:title] ;
@@ -46,15 +48,18 @@ EOF
       graph << [parent, RDF::Vocab::DC.title, "Parent title"]
       graph << [child, RDF::Vocab::DC.isPartOf, object]
       graph << [child, RDF::Vocab::DC.title, "Child title"]
+      graph << [parent, RDF::Vocab::DC.title, RDF::Literal.new("Child English!", language: "en")]
+      graph << [parent, RDF::Vocab::DC.title, RDF::Literal.new("Child French!", language: "fr")]
       graph << [parent, RDF::Vocab::DC.isPartOf, grandparent]
 
       result = subject.evaluate object, context: graph
-
       expect(result["title"]).to match_array "Hello, world!"
       expect(result["parent_title"]).to match_array "Parent title"
       expect(result["self"]).to match_array(object)
       expect(result["wildcard"]).to include "Hello, world!", parent
       expect(result["child_title"]).to match_array "Child title"
+      expect(result["parent_title"]).to match_array "Child English!"
+      expect(result["parent_title_en"]).to match_array "Child English!"
       expect(result["titles"]).to match_array ["Hello, world!", "Parent title", "Child title"]
       expect(result["no_titles"]).to be_empty
       expect(result["recursive"]).to match_array [parent, grandparent]

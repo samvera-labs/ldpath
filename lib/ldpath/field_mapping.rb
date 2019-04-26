@@ -13,7 +13,6 @@ module Ldpath
       case selector
       when Ldpath::Selector
         return to_enum(:evaluate, program, uri, context) unless block_given?
-
         selector.evaluate(program, uri, context).each do |value|
           yield transform_value(value)
         end

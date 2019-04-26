@@ -31,6 +31,7 @@ module Ldpath
       @mappings ||= mappings
       @default_loader = default_loader
       @loaders = loaders
+      @loaders[/^http:\/\/www.wikidata.org/] = Ldpath::Loaders::LinkedDataFragment.new('https://query.wikidata.org/bigdata/ldf')
       @prefixes = prefixes
       @filters = filters
 

@@ -29,7 +29,7 @@ module Ldpath
         [object]
       end
     end
-    
+
     def enum_flatten_one(object)
       return to_enum(:enum_flatten_one, object) unless block_given?
 

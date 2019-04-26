@@ -22,7 +22,7 @@ module Ldpath
 
     def load_graph(uri)
       cache[uri] ||= begin
-        program.loader(uri).tap { loaded[uri] = true }
+        program.load(uri).tap { loaded[uri] = true }
       end
     end
 

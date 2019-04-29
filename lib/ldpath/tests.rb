@@ -8,11 +8,14 @@ module Ldpath
     end
 
     def evaluate(program, uris, context)
+      return to_enum(:evaluate, program, uris, context) unless block_given?
+
       entries = delegate.evaluate program, uris, context
       entries.select do |uri|
-        enum_wrap(test.evaluate(program, uri, context)).any? do |x|
+        result = enum_wrap(test.evaluate(program, uri, context)).any? do |x|
           x
         end
+        yield uri if result
       end
     end
   end
@@ -26,7 +29,7 @@ module Ldpath
     def evaluate(_program, uri, _context)
       return unless uri.literal?
 
-      uri if (lang == "none" && !uri.has_language?) || uri.language == lang
+      uri if (lang.to_s == "none" && !uri.has_language?) || uri.language.to_s == lang.to_s
     end
   end
 

@@ -22,13 +22,7 @@ module Ldpath
 
     def load_graph(uri)
       cache[uri] ||= begin
-        Ldpath.logger.debug "[#{object_id}] Loading #{uri.inspect}"
-
-        reader_types = RDF::Format.reader_types.reject { |t| t.to_s =~ /html/ }.map do |t|
-          t.to_s =~ %r{text/(?:plain|html)} ? "#{t};q=0.5" : t
-        end
-
-        RDF::Graph.load(uri, headers: { 'Accept' => reader_types.join(", ") }).tap { loaded[uri] = true }
+        program.load(uri).tap { loaded[uri] = true }
       end
     end
 

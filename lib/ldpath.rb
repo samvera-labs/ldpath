@@ -11,6 +11,7 @@ module Ldpath
   require 'ldpath/functions'
   require 'ldpath/program'
   require 'ldpath/result'
+  require 'ldpath/loaders'
 
   class << self
     attr_writer :logger

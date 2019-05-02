@@ -6,3 +6,5 @@ group :development, :test do
   gem 'coveralls', require: false
   gem 'simplecov', require: false
 end
+
+gem 'lru_redux'

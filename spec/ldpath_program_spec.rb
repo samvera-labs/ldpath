@@ -326,42 +326,92 @@ title_with_loose =  ~dc:title :: xsd:string ;
 
   describe '#evaluate' do
     context 'when passing limit_to_context' do
-      subject do
+      let(:singlepath_program) do
         Ldpath::Program.parse <<-EOF
 @prefix madsrdf : <http://www.loc.gov/mads/rdf/v1#> ;
-@prefix schema: <http://www.w3.org/2000/01/rdf-schema#> ;
 property = madsrdf:authoritativeLabel :: xsd:string ;
+        EOF
+      end
+
+      let(:multipath_program) do
+        Ldpath::Program.parse <<-EOF
+@prefix madsrdf : <http://www.loc.gov/mads/rdf/v1#> ;
+property = madsrdf:identifiesRWO/madsrdf:associatedLanguage :: xsd:string ;
+        EOF
+      end
+
+      let(:bnode_program) do
+        Ldpath::Program.parse <<-EOF
+@prefix madsrdf : <http://www.loc.gov/mads/rdf/v1#> ;
+property = madsrdf:hasVariant/madsrdf:variantLabel :: xsd:string ;
         EOF
       end
 
       let(:subject_uri) { RDF::URI('http://id.loc.gov/authorities/names/n79021164') }
 
       let(:graph) do
+        b1 = RDF::Node.new('b1')
+        b2 = RDF::Node.new('b2')
+        b3 = RDF::Node.new('b3')
+        rwo = RDF::URI.new('http://id.loc.gov/rwo/agents/n79021164')
         graph = RDF::Graph.new
         graph << [subject_uri, RDF::Vocab::MADS.authoritativeLabel, 'Mark Twain (passed in context)']
+        graph << [subject_uri, RDF::Vocab::MADS.identifiesRWO, rwo]
+        graph << [rwo, RDF::Vocab::MADS.associatedLanguage, 'eng (passed in context)']
+        graph << [subject_uri, RDF::Vocab::MADS.hasVariant, b1]
+        graph << [b1, RDF::Vocab::MADS.variantLabel, 'Variant Twain (passed in context)']
+        graph << [subject_uri, RDF::Vocab::MADS.hasVariant, b2]
+        graph << [b2, RDF::Vocab::MADS.variantLabel, b3]
+        graph << [b3, RDF::Vocab::MADS.authoritativeLabel, 'A second level Variant of Twain (passed in context)']
         graph
       end
 
-      before do
-        stub_request(:get, 'http://id.loc.gov/authorities/names/n79021164')
-            .to_return(status: 200, body: webmock_fixture('loc_n79021164.nt'), headers: { 'Content-Type' => 'application/n-triples' })
-      end
-
       context 'as false' do
-        let(:expected_values) { ['Mark Twain (passed in context)', 'Twain, Mark, 1835-1910 (network call to LOC)'] }
+        before do
+          stub_request(:get, 'http://id.loc.gov/authorities/names/n79021164')
+              .to_return(status: 200, body: webmock_fixture('loc_n79021164.nt'), headers: { 'Content-Type' => 'application/n-triples' })
+          stub_request(:get, 'http://id.loc.gov/rwo/agents/n79021164')
+              .to_return(status: 200, body: webmock_fixture('loc_n79021164.nt'), headers: { 'Content-Type' => 'application/n-triples' })
+        end
 
-        it 'returns values from context and network call' do
-          result = subject.evaluate subject_uri, context: graph
-          expect(result['property']).to match_array expected_values
+        let(:single_path_expected_values) { ['Mark Twain (passed in context)', 'Twain, Mark, 1835-1910 (network call to LOC)'] }
+        let(:multi_path_expected_values) { ['eng (passed in context)', 'eng (network call to LOC)'] }
+        let(:bnode_expected_values) { ['Variant Twain (passed in context)', 'Twain, Variant (network call to LOC)'] }
+
+        it 'returns single path values from context and network call' do
+          result = singlepath_program.evaluate subject_uri, context: graph
+          expect(result['property']).to match_array single_path_expected_values
+        end
+
+        it 'returns multi-path values from context and network call' do
+          result = multipath_program.evaluate subject_uri, context: graph
+          expect(result['property']).to match_array multi_path_expected_values
+        end
+
+        it 'returns b-node values from context and network call' do
+          result = bnode_program.evaluate subject_uri, context: graph
+          expect(result['property']).to match_array bnode_expected_values
         end
       end
 
       context 'as true' do
-        let(:expected_values) { ['Mark Twain (passed in context)'] }
+        let(:single_path_expected_values) { ['Mark Twain (passed in context)'] }
+        let(:multi_path_expected_values) { ['eng (passed in context)'] }
+        let(:bnode_expected_values) { ['Variant Twain (passed in context)'] }
 
-        it 'returns values from context only' do
-          result = subject.evaluate(subject_uri, context: graph, limit_to_context: true)
-          expect(result['property']).to match_array expected_values
+        it 'returns single path values from context only' do
+          result = singlepath_program.evaluate(subject_uri, context: graph, limit_to_context: true)
+          expect(result['property']).to match_array single_path_expected_values
+        end
+
+        it 'returns multi-path values from context only' do
+          result = multipath_program.evaluate subject_uri, context: graph, limit_to_context: true
+          expect(result['property']).to match_array multi_path_expected_values
+        end
+
+        it 'returns b-node values from context only' do
+          result = bnode_program.evaluate subject_uri, context: graph, limit_to_context: true
+          expect(result['property']).to match_array bnode_expected_values
         end
       end
     end

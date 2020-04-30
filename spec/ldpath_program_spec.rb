@@ -239,6 +239,19 @@ EOF
         result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5")
         expect(result["title"]).to match_array "Huw Stephens"
       end
+
+      context 'error handling' do
+        before do
+          stub_request(:get, 'http://example.com/ldf?subject=http://www.bbc.co.uk/programmes/b0081dq5')
+              .to_return(status: 500, body: nil)
+        end
+
+        it "logs an error but continues processing" do
+          expect(Ldpath.logger).to receive(:warn)
+          result = subject.evaluate RDF::URI.new("http://www.bbc.co.uk/programmes/b0081dq5")
+          expect(result["title"]).to match_array []
+        end
+      end
     end
   end
 

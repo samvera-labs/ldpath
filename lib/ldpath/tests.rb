@@ -42,7 +42,11 @@ module Ldpath
     def evaluate(program, uri, _context)
       return unless uri.literal?
 
-      uri if uri.has_datatype? && uri.datatype == type
+      uri if (uri.has_datatype? && uri.datatype == type) || (uri.plain? && string_type?(type))
+    end
+
+    def string_type? type
+      [RDF.langString, RDF::URI("http://www.w3.org/2001/XMLSchema#string")].include?(type)
     end
   end
 

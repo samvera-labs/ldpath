@@ -2,6 +2,7 @@ require "ldpath/version"
 require 'logger'
 require 'nokogiri'
 require 'rdf'
+require 'rdf/vocab'
 # require rdf/ntriples may not be necessary, may only really be necessary
 # for ldpath_program_spec.rb tests, but I'm not certain, and I don't think it hurts
 # to do it here.

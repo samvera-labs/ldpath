@@ -3,7 +3,7 @@
 This is a ruby implementation of [LDPath](http://marmotta.apache.org/ldpath/language.html), a language for selecting values linked data resources.
 
 [![Gem Version](https://badge.fury.io/rb/ldpath.png)](http://badge.fury.io/rb/ldpath)
-[![Build Status](https://travis-ci.org/samvera-labs/ldpath.png?branch=master)](https://travis-ci.org/samvera-labs/ldpath)
+[![Build Status](https://circleci.com/gh/samvera-labs/ldpath.svg?style=svg)]
 [![Coverage Status](https://coveralls.io/repos/github/samvera-labs/ldpath/badge.svg?branch=master)](https://coveralls.io/github/samvera-labs/ldpath?branch=master)
 
 ## Installation
@@ -48,6 +48,12 @@ output = program.evaluate uri, context: context
 ## Compatibility
 
 * Ruby 2.5 or the latest 2.4 version is recommended.  Later versions may also work.
+
+## Contributing 
+
+If you're working on PR for this project, create a feature branch off of `main`. 
+
+This repository follows the [Samvera Community Code of Conduct](https://samvera.atlassian.net/wiki/spaces/samvera/pages/405212316/Code+of+Conduct) and [language recommendations](https://github.com/samvera/maintenance/blob/master/templates/CONTRIBUTING.md#language).  Please ***do not*** create a branch called `master` for this repository or as part of your pull request; the branch will either need to be removed or renamed before it can be considered for inclusion in the code base and history of this repository.
 
 ## Product Owner & Maintenance
 

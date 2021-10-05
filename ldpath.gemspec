@@ -17,15 +17,16 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "parslet"
-  spec.add_dependency "rdf", '~> 3.0'
   spec.add_dependency "nokogiri", "~> 1.8"
+  spec.add_dependency "parslet"
+  spec.add_dependency "rdf", '= 3.1.1' # pinning for LoosePropertySelector
+  spec.add_dependency "rdf-vocab", '= 3.1.1' # pinning for LoosePropertySelector
 
   # spec.add_development_dependency "bixby", "~> 1.0.0"
-  spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec"
+  spec.add_development_dependency 'rspec_junit_formatter'
   spec.add_development_dependency "rdf-reasoner"
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "rubocop"

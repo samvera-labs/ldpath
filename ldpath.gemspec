@@ -19,8 +19,8 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "nokogiri", "~> 1.8"
   spec.add_dependency "parslet"
-  spec.add_dependency "rdf", '= 3.1.1' # pinning for LoosePropertySelector
-  spec.add_dependency "rdf-vocab", '= 3.1.1' # pinning for LoosePropertySelector
+  spec.add_dependency "rdf", '~> 3.0'
+  spec.add_dependency 'rdf-vocab', '~> 3.0'
 
   # spec.add_development_dependency "bixby", "~> 1.0.0"
   spec.add_development_dependency "byebug"

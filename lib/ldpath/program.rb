@@ -6,7 +6,7 @@ module Ldpath
       def parse(program, transform_context = {})
         ast = transform.apply load(program), transform_context
 
-        Ldpath::Program.new ast.compact, transform_context
+        Ldpath::Program.new ast.compact, **transform_context
       end
 
       def load(program)

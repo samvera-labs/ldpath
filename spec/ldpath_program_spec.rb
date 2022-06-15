@@ -20,6 +20,7 @@ conditional = dcterms:isPartOf[dcterms:title] ;
 conditional_false = dcterms:isPartOf[dcterms:description] ;
 int_value = <info:intProperty>[^^xsd:integer] :: xsd:integer ;
 numeric_value = <info:numericProperty> :: xsd:integer ;
+string_title = dcterms:title[^^xsd:string] :: xsd:string ;
 escaped_string = "\\"" :: xsd:string;
 and_test = .[dcterms:title & dcterms:gone] ;
 or_test = .[dcterms:title | dcterms:gone] ;
@@ -38,7 +39,10 @@ EOF
     end
 
     it "should work" do
+      b1 = RDF::Node.new('b1')
       graph << [object, RDF::Vocab::DC.title, "Hello, world!"]
+      graph << [object, RDF::Vocab::DC.title, b1]
+      graph << [b1, RDF::Vocab::SKOS.prefLabel, "Title through blank node"]
       graph << [object, RDF::Vocab::DC.isPartOf, parent]
       graph << [object, RDF::Vocab::DC.description, RDF::Literal.new("English!", language: "en")]
       graph << [object, RDF::Vocab::DC.description, RDF::Literal.new("French!", language: "fr")]
@@ -53,13 +57,13 @@ EOF
       graph << [parent, RDF::Vocab::DC.isPartOf, grandparent]
 
       result = subject.evaluate object, context: graph
-      expect(result["title"]).to match_array "Hello, world!"
+      expect(result["title"]).to match_array ["Hello, world!", "_:b1"]
       expect(result["parent_title"]).to match_array ["Parent title", "Parent English!", "Parent French!"]
       expect(result["parent_title_en"]).to match_array "Parent English!"
       expect(result["self"]).to match_array(object)
       expect(result["wildcard"]).to include "Hello, world!", parent
       expect(result["child_title"]).to match_array "Child title"
-      expect(result["titles"]).to match_array ["Hello, world!", "Parent title", "Child title", "Parent English!", "Parent French!"]
+      expect(result["titles"]).to match_array ["Hello, world!", "Parent title", "Child title", "Parent English!", "Parent French!", "_:b1"]
       expect(result["no_titles"]).to be_empty
       expect(result["recursive"]).to match_array [parent, grandparent]
       expect(result["en_description"].first.to_s).to eq "English!"
@@ -67,6 +71,7 @@ EOF
       expect(result["conditional_false"]).to be_empty
       expect(result["int_value"]).to match_array 1
       expect(result["numeric_value"]).to match_array 1
+      expect(result["string_title"]).to match_array ["Hello, world!"]
       expect(result["escaped_string"]).to match_array '\"'
       expect(result["and_test"]).to be_empty
       expect(result["or_test"]).to match_array(object)

@@ -1,16 +1,16 @@
 ---
 version: 2.1
 orbs:
-  samvera: samvera/circleci-orb@1
+  samvera: samvera/circleci-orb@1.0
 
 jobs:
- test:
+  bundle_and_test:
     parameters:
       ruby_version:
         type: string
       bundler_version:
         type: string
-        default: 2.0.2
+        default: 2.3.10
 
     executor:
       name: 'samvera/ruby'
@@ -23,29 +23,30 @@ jobs:
 
     steps:
       - samvera/cached_checkout
+
+      - run: 'sudo apt-get update'
+
       - samvera/bundle:
           ruby_version: << parameters.ruby_version >>
           bundler_version: << parameters.bundler_version >>
           cache_version: "2"
+
       # - samvera/rubocop
+
       - samvera/parallel_rspec
 
 workflows:
-  version: 2
   ci:
     jobs:
-      # - test:
+      # - bundle_and_test:
       #     name: "ruby3-0"
       #     ruby_version: "3.0.0"
-      - test:
+      - bundle_and_test:
           name: "ruby2-7"
-          ruby_version: "2.7.0"
-      - test:
+          ruby_version: "2.7.5"
+      - bundle_and_test:
           name: "ruby2-6"
-          ruby_version: "2.6.5"
-      - test:
+          ruby_version: "2.6.9"
+      - bundle_and_test:
           name: "ruby2-5"
-          ruby_version: "2.5.7"
-      - test:
-          name: "ruby2-4"
-          ruby_version: "2.4.9"
+          ruby_version: "2.5.9"

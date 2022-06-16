@@ -4,7 +4,7 @@ This is a ruby implementation of [LDPath](http://marmotta.apache.org/ldpath/lang
 
 [![Gem Version](https://badge.fury.io/rb/ldpath.png)](http://badge.fury.io/rb/ldpath)
 [![Build Status](https://circleci.com/gh/samvera-labs/ldpath.svg?style=svg)]
-[![Coverage Status](https://coveralls.io/repos/github/samvera-labs/ldpath/badge.svg?branch=master)](https://coveralls.io/github/samvera-labs/ldpath?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/samvera-labs/ldpath/badge.svg?branch=main)](https://coveralls.io/github/samvera-labs/ldpath?branch=main)
 
 ## Installation
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # rubocop:disable Style/MethodName
 module Ldpath
   module Functions
@@ -60,13 +62,11 @@ module Ldpath
     end
 
     # collections
-    def flatten(uri, context, lists)
+    def flatten(uri, context, lists, &block)
       return to_enum(:flatten, uri, context, lists) unless block_given?
 
       deep_flatten_compact(lists).each do |x|
-        RDF::List.new(subject: x, graph: context).to_a.each do |i|
-          yield i
-        end
+        RDF::List.new(subject: x, graph: context).to_a.each(&block)
       end
     end
 

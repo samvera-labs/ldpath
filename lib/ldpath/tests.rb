@@ -1,10 +1,14 @@
+# frozen_string_literal: true
+
 module Ldpath
   class TestSelector < Selector
     attr_reader :delegate, :test
 
-    def initialize(delegate, test)
+    def initialize(delegate = nil, test = nil)
       @delegate = delegate
       @test = test
+
+      super
     end
 
     def evaluate(program, uris, context)
@@ -22,8 +26,11 @@ module Ldpath
 
   class LanguageTest < TestSelector
     attr_reader :lang
+
     def initialize(lang)
       @lang = lang
+
+      super
     end
 
     def evaluate(_program, uri, _context)
@@ -35,11 +42,14 @@ module Ldpath
 
   class TypeTest < TestSelector
     attr_reader :type
+
     def initialize(type)
       @type = type
+
+      super
     end
 
-    def evaluate(program, uri, _context)
+    def evaluate(_program, uri, _context)
       return unless uri.literal?
 
       uri if uri.has_datatype? && uri.datatype == type
@@ -51,10 +61,12 @@ module Ldpath
 
     def initialize(delegate)
       @delegate = delegate
+
+      super
     end
 
     def evaluate(program, uri, context)
-      !enum_wrap(delegate.evaluate(program, uri, context)).any? { |x| x }
+      enum_wrap(delegate.evaluate(program, uri, context)).none? { |x| x }
     end
   end
 
@@ -64,6 +76,8 @@ module Ldpath
     def initialize(left, right)
       @left = left
       @right = right
+
+      super
     end
 
     def evaluate(program, uri, context)
@@ -77,6 +91,8 @@ module Ldpath
     def initialize(left, right)
       @left = left
       @right = right
+
+      super
     end
 
     def evaluate(program, uri, context)
@@ -91,6 +107,8 @@ module Ldpath
     def initialize(left, right)
       @left = left
       @right = right
+
+      super
     end
 
     def evaluate(program, uri, context)

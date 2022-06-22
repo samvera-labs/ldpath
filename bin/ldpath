@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require 'optparse'
 require 'open-uri'
@@ -6,8 +7,10 @@ require 'ldpath'
 
 begin
   require 'rest-client'
+# rubocop:disable Lint/SuppressedException
 rescue LoadError
 end
+# rubocop:enable Lint/SuppressedException
 
 options = {}
 opt_parser = OptionParser.new do |opts|
@@ -15,7 +18,9 @@ opt_parser = OptionParser.new do |opts|
 
   opts.on("--program=STRING_URI_OR_FILE", "LDPath program to run (reads from STDIN by default)") do |program|
     options[:program] = if File.exist?(program) || program =~ /^http/
+                          # rubocop:disable Security/Open
                           open(program).read
+                          # rubocop:enable Security/Open
                         elsif program.strip == "-"
                           $stdin.read
                         else
@@ -29,7 +34,7 @@ opt_parser.parse!
 uri = ARGV.shift
 
 if uri.nil?
-  $stderr.puts opt_parser
+  warn opt_parser
   raise OptionParser::MissingArgument, "URI" unless uri
 end
 

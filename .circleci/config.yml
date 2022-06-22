@@ -31,7 +31,7 @@ jobs:
           bundler_version: << parameters.bundler_version >>
           cache_version: "2"
 
-      # - samvera/rubocop
+      - samvera/rubocop
 
       - samvera/parallel_rspec
 
@@ -47,9 +47,3 @@ workflows:
       - bundle_and_test:
           name: "ruby2-7"
           ruby_version: "2.7.5"
-      - bundle_and_test:
-          name: "ruby2-6"
-          ruby_version: "2.6.9"
-      - bundle_and_test:
-          name: "ruby2-5"
-          ruby_version: "2.5.9"

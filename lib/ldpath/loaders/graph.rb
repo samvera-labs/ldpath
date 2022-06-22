@@ -1,9 +1,15 @@
-class Ldpath::Loaders::Graph
-  def initialize(graph:)
-    @graph = graph
-  end
+# frozen_string_literal: true
 
-  def load(uri)
-    @graph
+module Ldpath
+  module Loaders
+    class Graph
+      def initialize(graph:)
+        @graph = graph
+      end
+
+      def load(_uri)
+        @graph
+      end
+    end
   end
 end

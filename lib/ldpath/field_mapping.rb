@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Ldpath
   class FieldMapping
     attr_reader :name, :selector, :field_type

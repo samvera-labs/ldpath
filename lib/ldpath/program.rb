@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Ldpath
   class Program
     ParseError = Class.new StandardError
@@ -27,26 +29,24 @@ module Ldpath
     end
 
     attr_reader :mappings, :prefixes, :filters, :default_loader, :loaders
+
     def initialize(mappings, default_loader: Ldpath::Loaders::Direct.new, prefixes: {}, filters: [], loaders: {})
-      @mappings ||= mappings
+      @mappings = mappings
       @default_loader = default_loader
       @loaders = loaders
       @prefixes = prefixes
       @filters = filters
-
     end
 
     def evaluate(uri, context: nil, limit_to_context: false)
       result = Ldpath::Result.new(self, uri, context: context, limit_to_context: limit_to_context)
-      unless filters.empty?
-        return {} unless filters.all? { |f| f.evaluate(result, uri, result.context) }
-      end
+      return {} if !filters.empty? && !filters.all? { |f| f.evaluate(result, uri, result.context) }
 
       result.to_hash
     end
 
     def load(uri)
-      loader = loaders.find { |k, v| uri =~ k }&.last
+      loader = loaders.find { |k, _v| uri =~ k }&.last
       loader ||= default_loader
 
       loader.load(uri)

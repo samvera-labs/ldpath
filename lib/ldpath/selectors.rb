@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 module Ldpath
   class Selector
     def evaluate(program, uris, context)
       return to_enum(:evaluate, program, uris, context) unless block_given?
+
       enum_wrap(uris).map do |uri|
         loading program, uri, context
         enum_flatten_one(evaluate_one(uri, context)).each do |x|
@@ -12,6 +15,10 @@ module Ldpath
 
     def loading(program, uri, context)
       program.loading uri, context
+    end
+
+    def initialize(*_args)
+      # abstract base class
     end
 
     protected
@@ -29,14 +36,12 @@ module Ldpath
         [object]
       end
     end
-    
-    def enum_flatten_one(object)
+
+    def enum_flatten_one(object, &block)
       return to_enum(:enum_flatten_one, object) unless block_given?
 
       enum_wrap(object).each do |e|
-        enum_wrap(e).each do |v|
-          yield v
-        end
+        enum_wrap(e).each(&block)
       end
     end
   end
@@ -53,6 +58,8 @@ module Ldpath
     def initialize(fname, arguments = [])
       @fname = fname
       @arguments = Array(arguments)
+
+      super
     end
 
     def evaluate(program, uris, context)
@@ -77,8 +84,11 @@ module Ldpath
 
   class PropertySelector < Selector
     attr_reader :property
+
     def initialize(property)
       @property = property
+
+      super
     end
 
     def evaluate_one(uri, context)
@@ -88,8 +98,11 @@ module Ldpath
 
   class LoosePropertySelector < Selector
     attr_reader :property
+
     def initialize(property)
       @property = property
+
+      super
     end
 
     def evaluate_one(uri, context)
@@ -103,8 +116,11 @@ module Ldpath
 
   class NegatedPropertySelector < Selector
     attr_reader :properties
+
     def initialize(*properties)
       @properties = properties
+
+      super
     end
 
     def evaluate_one(uri, context)
@@ -122,8 +138,11 @@ module Ldpath
 
   class ReversePropertySelector < Selector
     attr_reader :property
+
     def initialize(property)
       @property = property
+
+      super
     end
 
     def evaluate_one(uri, context)
@@ -133,34 +152,39 @@ module Ldpath
 
   class RecursivePathSelector < Selector
     attr_reader :property, :repeat
+
     def initialize(property, repeat)
       @property = property
       @repeat = repeat
+
+      super
     end
 
-    def evaluate(program, uris, context)
+    def evaluate(program, uris, context, &block)
       return to_enum(:evaluate, program, uris, context) unless block_given?
 
       input = enum_wrap(uris)
 
-      (0..repeat.max).each_with_index do |i, idx|
-        break if input.none? || (repeat.max == Ldpath::Transform::Infinity && idx > 25) # we're probably lost..
+      (0..repeat.max).each_with_index do |_i, idx|
+        break if input.none? || (repeat.max == Ldpath::Transform::INFINITY && idx > 25) # we're probably lost..
+
         input = property.evaluate program, input, context
 
         next unless idx >= repeat.min
 
-        enum_wrap(input).each do |x|
-          yield x
-        end
+        enum_wrap(input).each(&block)
       end
     end
   end
 
   class CompoundSelector < Selector
     attr_reader :left, :right
+
     def initialize(left, right)
       @left = left
       @right = right
+
+      super
     end
   end
 
@@ -174,46 +198,41 @@ module Ldpath
   end
 
   class UnionSelector < CompoundSelector
-    def evaluate(program, uris, context)
+    def evaluate(program, uris, context, &block)
       return to_enum(:evaluate, program, uris, context) unless block_given?
 
-      enum_union(left.evaluate(program, uris, context), right.evaluate(program, uris, context)).each do |x|
-        yield x
-      end
+      enum_union(left.evaluate(program, uris, context), right.evaluate(program, uris, context)).each(&block)
     end
 
     private
 
-    def enum_union(left, right)
+    def enum_union(left, right, &block)
       return to_enum(:enum_union, left, right) unless block_given?
 
-      enum_wrap(left).each do |e|
-        yield e
-      end
+      enum_wrap(left).each(&block)
 
-      enum_wrap(right).each do |e|
-        yield e
-      end
+      enum_wrap(right).each(&block)
     end
   end
 
   class IntersectionSelector < CompoundSelector
-    def evaluate(program, uris, context)
+    def evaluate(program, uris, context, &block)
       return to_enum(:evaluate, program, uris, context) unless block_given?
 
       result = left.evaluate(program, uris, context).to_a & right.evaluate(program, uris, context).to_a
 
-      result.each do |x|
-        yield x
-      end
+      result.each(&block)
     end
   end
 
   class TapSelector < Selector
     attr_reader :identifier, :tap
+
     def initialize(identifier, tap)
       @identifier = identifier
       @tap = tap
+
+      super
     end
 
     def evaluate(program, uris, context)

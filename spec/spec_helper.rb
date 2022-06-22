@@ -4,7 +4,13 @@ $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'ldpath'
 require 'rdf/reasoner'
 require 'webmock/rspec'
-require 'byebug' unless ENV['TRAVIS']
+require 'byebug' unless ENV['CI']
+require 'simplecov'
+
+SimpleCov.start do
+  add_filter "lib/ldpath/version.rb"
+  add_filter "spec/"
+end
 
 RDF::Reasoner.apply(:rdfs)
 RDF::Reasoner.apply(:owl)

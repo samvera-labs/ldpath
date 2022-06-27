@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require 'active_support/core_ext/module/delegation'
+
 module Ldpath
   class Result
     include Ldpath::Functions
@@ -13,7 +17,7 @@ module Ldpath
     end
 
     def loading(uri, context)
-      return unless uri.to_s =~ /^http/
+      return unless /^http/.match?(uri.to_s)
       return if loaded[uri.to_s]
 
       context << load_graph(uri.to_s) unless limit_to_context?
@@ -21,9 +25,7 @@ module Ldpath
     end
 
     def load_graph(uri)
-      cache[uri] ||= begin
-        program.load(uri).tap { loaded[uri] = true }
-      end
+      cache[uri] ||= program.load(uri).tap { loaded[uri] = true }
     end
 
     def [](key)
@@ -48,9 +50,7 @@ module Ldpath
       @context ||= load_graph(uri.to_s)
     end
 
-    def prefixes
-      program.prefixes
-    end
+    delegate :prefixes, to: :program
 
     def meta
       @meta ||= {}

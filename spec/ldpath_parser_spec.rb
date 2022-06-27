@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'pp'
 require 'parslet/convenience'
@@ -228,10 +230,10 @@ describe Ldpath::Parser do
 
     describe "integration tests" do
       it "should parse a simple example" do
-        tree = subject.parse <<-EOF
-@prefix dcterms : <http://purl.org/dc/terms/> ;
-topic = <http://xmlns.com/foaf/0.1/primaryTopic> :: xsd:string ;
-EOF
+        tree = subject.parse <<~EOF
+          @prefix dcterms : <http://purl.org/dc/terms/> ;
+          topic = <http://xmlns.com/foaf/0.1/primaryTopic> :: xsd:string ;
+        EOF
         expect(tree.length).to eq 2
         expect(tree.first).to include :prefixID
         expect(tree.first[:prefixID]).to include id: 'dcterms'

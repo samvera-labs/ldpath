@@ -1,31 +1,33 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Ldpath::Program do
   describe "Simple program" do
     subject do
-      Ldpath::Program.parse <<-EOF
-@prefix dcterms : <http://purl.org/dc/terms/> ;
-title = dcterms:title :: xsd:string ;
-parent_title = dcterms:isPartOf / dcterms:title :: xsd:string ;
-parent_title_en = dcterms:isPartOf / dcterms:title[@en] :: xsd:string ;
-titles = dcterms:title | (dcterms:isPartOf / dcterms:title) | (^dcterms:isPartOf / dcterms:title) :: xsd:string ;
-no_titles = dcterms:title & (dcterms:isPartOf / dcterms:title) & (^dcterms:isPartOf / dcterms:title) :: xsd:string ;
-self = . :: xsd:string ;
-wildcard = * ::xsd:string ;
-child_title = ^dcterms:isPartOf / dcterms:title :: xsd:string ;
-child_description_en = ^dcterms:isPartOf / dcterms:description[@en] :: xsd:string ;
-recursive = (dcterms:isPartOf)* ;
-en_description = dcterms:description[@en] ;
-conditional = dcterms:isPartOf[dcterms:title] ;
-conditional_false = dcterms:isPartOf[dcterms:description] ;
-int_value = <info:intProperty>[^^xsd:integer] :: xsd:integer ;
-numeric_value = <info:numericProperty> :: xsd:integer ;
-escaped_string = "\\"" :: xsd:string;
-and_test = .[dcterms:title & dcterms:gone] ;
-or_test = .[dcterms:title | dcterms:gone] ;
-is_test = .[dcterms:title is "Hello, world!"] ;
-is_not_test = .[!(dcterms:title is "Hello, world!")] ;
-EOF
+      Ldpath::Program.parse <<~EOF
+        @prefix dcterms : <http://purl.org/dc/terms/> ;
+        title = dcterms:title :: xsd:string ;
+        parent_title = dcterms:isPartOf / dcterms:title :: xsd:string ;
+        parent_title_en = dcterms:isPartOf / dcterms:title[@en] :: xsd:string ;
+        titles = dcterms:title | (dcterms:isPartOf / dcterms:title) | (^dcterms:isPartOf / dcterms:title) :: xsd:string ;
+        no_titles = dcterms:title & (dcterms:isPartOf / dcterms:title) & (^dcterms:isPartOf / dcterms:title) :: xsd:string ;
+        self = . :: xsd:string ;
+        wildcard = * ::xsd:string ;
+        child_title = ^dcterms:isPartOf / dcterms:title :: xsd:string ;
+        child_description_en = ^dcterms:isPartOf / dcterms:description[@en] :: xsd:string ;
+        recursive = (dcterms:isPartOf)* ;
+        en_description = dcterms:description[@en] ;
+        conditional = dcterms:isPartOf[dcterms:title] ;
+        conditional_false = dcterms:isPartOf[dcterms:description] ;
+        int_value = <info:intProperty>[^^xsd:integer] :: xsd:integer ;
+        numeric_value = <info:numericProperty> :: xsd:integer ;
+        escaped_string = "\\"" :: xsd:string;
+        and_test = .[dcterms:title & dcterms:gone] ;
+        or_test = .[dcterms:title | dcterms:gone] ;
+        is_test = .[dcterms:title is "Hello, world!"] ;
+        is_not_test = .[!(dcterms:title is "Hello, world!")] ;
+      EOF
     end
 
     let(:object) { RDF::URI.new("info:a") }
@@ -77,24 +79,24 @@ EOF
 
   describe "functions" do
     let(:program) do
-      Ldpath::Program.parse <<-EOF
-@prefix dcterms : <http://purl.org/dc/terms/> ;
-ab = fn:concat("a", "b") ;
-title = fn:concat(dcterms:title, dcterms:description) ;
-title_mix = fn:concat("!", dcterms:title) ;
-title_missing = fn:concat("z", dcterms:genre) ;
-first_a = fn:first("a", "b") ;
-first_b = fn:first(dcterms:genre, "b") ;
-last_a = fn:last("a", dcterms:genre) ;
-last_b = fn:last("a", "b") ;
-count_5 = fn:count("a", "b", "c", "d", "e");
-count_3 = fn:count(dcterms:hasPart);
-count_still_3 = fn:count(dcterms:hasPart, dcterms:genre);
-eq_true = fn:eq("a", "a");
-eq_false = fn:eq("a", "b");
-eq_node_true = fn:eq(dcterms:description, "Description");
-xpath_test = fn:xpath("//title", "<root><title>xyz</title></root>");
-EOF
+      Ldpath::Program.parse <<~EOF
+        @prefix dcterms : <http://purl.org/dc/terms/> ;
+        ab = fn:concat("a", "b") ;
+        title = fn:concat(dcterms:title, dcterms:description) ;
+        title_mix = fn:concat("!", dcterms:title) ;
+        title_missing = fn:concat("z", dcterms:genre) ;
+        first_a = fn:first("a", "b") ;
+        first_b = fn:first(dcterms:genre, "b") ;
+        last_a = fn:last("a", dcterms:genre) ;
+        last_b = fn:last("a", "b") ;
+        count_5 = fn:count("a", "b", "c", "d", "e");
+        count_3 = fn:count(dcterms:hasPart);
+        count_still_3 = fn:count(dcterms:hasPart, dcterms:genre);
+        eq_true = fn:eq("a", "a");
+        eq_false = fn:eq("a", "b");
+        eq_node_true = fn:eq(dcterms:description, "Description");
+        xpath_test = fn:xpath("//title", "<root><title>xyz</title></root>");
+      EOF
     end
 
     let(:object) { RDF::URI.new("info:a") }
@@ -192,16 +194,16 @@ EOF
       Ldpath::Program.parse <<-EOF, context
         @prefix dcterms : <http://purl.org/dc/terms/> ;
         title = foaf:primaryTopic / dc:title :: xsd:string ;
-        EOF
+      EOF
     end
     let(:context) { {} }
 
     context 'with direct loading' do
-      let(:context) { { default_loader: Ldpath::Loaders::Direct.new }}
+      let(:context) { { default_loader: Ldpath::Loaders::Direct.new } }
 
       before do
         stub_request(:get, 'http://www.bbc.co.uk/programmes/b0081dq5')
-            .to_return(status: 200, body: webmock_fixture('bbc_b0081dq5.nt'), headers: { 'Content-Type' => 'application/n-triples' })
+          .to_return(status: 200, body: webmock_fixture('bbc_b0081dq5.nt'), headers: { 'Content-Type' => 'application/n-triples' })
       end
 
       it "should work" do
@@ -213,10 +215,11 @@ EOF
     context 'with an existing graph' do
       let(:graph) { RDF::Graph.new }
       let(:graph_loader) { Ldpath::Loaders::Graph.new graph: graph }
-      let(:context) { { default_loader: graph_loader }}
+      let(:context) { { default_loader: graph_loader } }
 
       before do
-        graph << [RDF::URI('http://www.bbc.co.uk/programmes/b0081dq5'), RDF::URI('http://xmlns.com/foaf/0.1/primaryTopic'), RDF::URI('info:some_uri')]
+        graph << [RDF::URI('http://www.bbc.co.uk/programmes/b0081dq5'), RDF::URI('http://xmlns.com/foaf/0.1/primaryTopic'),
+                  RDF::URI('info:some_uri')]
         graph << [RDF::URI('info:some_uri'), RDF::URI('http://purl.org/dc/elements/1.1/title'), 'Local Huw Stephens']
       end
 
@@ -228,11 +231,11 @@ EOF
 
     context 'with linked data fragments' do
       let(:graph_loader) { Ldpath::Loaders::LinkedDataFragment.new('http://example.com/ldf') }
-      let(:context) { { default_loader: graph_loader }}
+      let(:context) { { default_loader: graph_loader } }
 
       before do
         stub_request(:get, 'http://example.com/ldf?subject=http://www.bbc.co.uk/programmes/b0081dq5')
-            .to_return(status: 200, body: webmock_fixture('bbc_b0081dq5.nt'), headers: { 'Content-Type' => 'application/n-triples' })
+          .to_return(status: 200, body: webmock_fixture('bbc_b0081dq5.nt'), headers: { 'Content-Type' => 'application/n-triples' })
       end
 
       it "should work" do
@@ -244,10 +247,10 @@ EOF
 
   describe "Predicate function" do
     subject do
-      Ldpath::Program.parse <<-EOF
-@prefix dcterms : <http://purl.org/dc/terms/> ;
-predicates = <http://xmlns.com/foaf/0.1/primaryTopic> / fn:predicates() :: xsd:string ;
-EOF
+      Ldpath::Program.parse <<~EOF
+        @prefix dcterms : <http://purl.org/dc/terms/> ;
+        predicates = <http://xmlns.com/foaf/0.1/primaryTopic> / fn:predicates() :: xsd:string ;
+      EOF
     end
 
     before do
@@ -279,11 +282,11 @@ EOF
     end
 
     subject do
-      Ldpath::Program.parse <<-EOF
-@prefix dcterms : <http://purl.org/dc/terms/> ;
-title = dcterms:title :: xsd:string ;
-child_title = dcterms:hasPart / dcterms:title :: xsd:string ;
-child_title_with_tap = dcterms:hasPart / ?<tap>fn:predicates() / dcterms:title :: xsd:string ;
+      Ldpath::Program.parse <<~EOF
+        @prefix dcterms : <http://purl.org/dc/terms/> ;
+        title = dcterms:title :: xsd:string ;
+        child_title = dcterms:hasPart / dcterms:title :: xsd:string ;
+        child_title_with_tap = dcterms:hasPart / ?<tap>fn:predicates() / dcterms:title :: xsd:string ;
       EOF
     end
 
@@ -310,11 +313,11 @@ child_title_with_tap = dcterms:hasPart / ?<tap>fn:predicates() / dcterms:title :
     end
 
     subject do
-      Ldpath::Program.parse <<-EOF
-@prefix dcterms : <http://purl.org/dc/terms/> ;
-@prefix dc: <http://purl.org/dc/elements/1.1/> ;
-title = dcterms:title :: xsd:string ;
-title_with_loose =  ~dc:title :: xsd:string ;
+      Ldpath::Program.parse <<~EOF
+        @prefix dcterms : <http://purl.org/dc/terms/> ;
+        @prefix dc: <http://purl.org/dc/elements/1.1/> ;
+        title = dcterms:title :: xsd:string ;
+        title_with_loose =  ~dc:title :: xsd:string ;
       EOF
     end
 
@@ -367,10 +370,10 @@ title_with_loose =  ~dc:title :: xsd:string ;
   describe '#evaluate' do
     context 'when passing limit_to_context' do
       subject do
-        Ldpath::Program.parse <<-EOF
-@prefix madsrdf : <http://www.loc.gov/mads/rdf/v1#> ;
-@prefix schema: <http://www.w3.org/2000/01/rdf-schema#> ;
-property = madsrdf:authoritativeLabel :: xsd:string ;
+        Ldpath::Program.parse <<~EOF
+          @prefix madsrdf : <http://www.loc.gov/mads/rdf/v1#> ;
+          @prefix schema: <http://www.w3.org/2000/01/rdf-schema#> ;
+          property = madsrdf:authoritativeLabel :: xsd:string ;
         EOF
       end
 
@@ -384,7 +387,7 @@ property = madsrdf:authoritativeLabel :: xsd:string ;
 
       before do
         stub_request(:get, 'http://id.loc.gov/authorities/names/n79021164')
-            .to_return(status: 200, body: webmock_fixture('loc_n79021164.nt'), headers: { 'Content-Type' => 'application/n-triples' })
+          .to_return(status: 200, body: webmock_fixture('loc_n79021164.nt'), headers: { 'Content-Type' => 'application/n-triples' })
       end
 
       context 'as false' do

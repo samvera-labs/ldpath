@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'parslet'
 
 module Ldpath
@@ -39,7 +41,7 @@ module Ldpath
 
     rule(:exponent) { match('[Ee]') >> match("[+-]").maybe >> match("\\d").repeat(1) }
     rule(:numeric_literal) { integer.as(:integer) | decimal.as(:decimal) | double.as(:double) }
-    rule(:boolean_literal) { str('true').as(:true) | str('false').as(:false) }
+    rule(:boolean_literal) { str('true').as(true) | str('false').as(false) }
 
     rule(:string) { string_literal_quote | string_literal_single_quote | string_literal_long_single_quote | string_literal_long_quote }
 
@@ -150,7 +152,7 @@ module Ldpath
       (identifier | str("")).as(:id) >> wsp? >>
       colon >> wsp? >>
       iriref >> space? >> scolon.maybe
-      ).as(:prefixID)
+    ).as(:prefixID)
     end
 
     # @graph iri, iri, iri ;

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Ldpath
   class Transform < Parslet::Transform
     attr_reader :prefixes
@@ -5,17 +7,17 @@ module Ldpath
     class << self
       def default_prefixes
         @default_prefixes ||= {
-          "rdf"  => RDF::Vocabulary.new("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
+          "rdf" => RDF::Vocabulary.new("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
           "rdfs" => RDF::Vocabulary.new("http://www.w3.org/2000/01/rdf-schema#"),
-          "owl"  => RDF::Vocabulary.new("http://www.w3.org/2002/07/owl#"),
+          "owl" => RDF::Vocabulary.new("http://www.w3.org/2002/07/owl#"),
           "skos" => RDF::Vocabulary.new("http://www.w3.org/2004/02/skos/core#"),
-          "dc"   => RDF::Vocabulary.new("http://purl.org/dc/elements/1.1/"),
-          "xsd"  => RDF::Vocabulary.new("http://www.w3.org/2001/XMLSchema#"), #          (LMF base index datatypes/XML Schema)
-          "lmf"  => RDF::Vocabulary.new("http://www.newmedialab.at/lmf/types/1.0/"), #    (LMF extended index datatypes)
-          "fn"   => RDF::Vocabulary.new("http://www.newmedialab.at/lmf/functions/1.0/"), # (LMF index functions)
+          "dc" => RDF::Vocabulary.new("http://purl.org/dc/elements/1.1/"),
+          "xsd" => RDF::Vocabulary.new("http://www.w3.org/2001/XMLSchema#"), #          (LMF base index datatypes/XML Schema)
+          "lmf" => RDF::Vocabulary.new("http://www.newmedialab.at/lmf/types/1.0/"), #    (LMF extended index datatypes)
+          "fn" => RDF::Vocabulary.new("http://www.newmedialab.at/lmf/functions/1.0/"), # (LMF index functions)
           "foaf" => RDF::Vocabulary.new("http://xmlns.com/foaf/0.1/"),
           "info" => RDF::Vocabulary.new("info:"),
-          "urn"  => RDF::Vocabulary.new("urn:")
+          "urn" => RDF::Vocabulary.new("urn:")
         }
       end
     end
@@ -29,8 +31,8 @@ module Ldpath
     end
 
     # Core types
-    rule(true: simple(:true)) { true }
-    rule(false: simple(:false)) { false }
+    rule(true => simple(true)) { true }
+    rule(false => simple(false)) { false }
     rule(integer: simple(:integer)) { integer.to_i }
     rule(double: simple(:double)) { double.to_f }
     rule(decimal: simple(:decimal)) { decimal.to_f }
@@ -71,7 +73,7 @@ module Ldpath
     # Mappings
 
     rule(mapping: subtree(:mapping)) do
-      FieldMapping.new **mapping
+      FieldMapping.new(**mapping)
     end
 
     ## Selectors
@@ -106,11 +108,11 @@ module Ldpath
     end
 
     rule(range: subtree(:range)) do
-      range.fetch(:min, 0).to_i..range.fetch(:max, Infinity).to_f
+      range.fetch(:min, 0).to_i..range.fetch(:max, INFINITY).to_f
     end
 
-    rule(range: '*') { 0..Infinity }
-    rule(range: '+') { 1..Infinity }
+    rule(range: '*') { 0..INFINITY }
+    rule(range: '+') { 1..INFINITY }
     rule(range: '?') { 0..1 }
 
     rule(delegate: subtree(:delegate), repeat: simple(:repeat)) do
@@ -177,6 +179,6 @@ module Ldpath
       IntersectionSelector.new left, right
     end
 
-    Infinity = 1.0 / 0.0
+    INFINITY = 1.0 / 0.0
   end
 end

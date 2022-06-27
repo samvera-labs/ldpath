@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "ldpath/version"
 require 'logger'
 require 'nokogiri'
@@ -27,13 +29,11 @@ module Ldpath
     end
 
     def logger
-      @logger ||= begin
-        if defined? Rails
-          Rails.logger
-        else
-          Logger.new(STDERR)
-        end
-      end
+      @logger ||= if defined? Rails
+                    Rails.logger
+                  else
+                    Logger.new($stderr)
+                  end
     end
   end
 end

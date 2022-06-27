@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'pp'
 describe Ldpath::Transform do
@@ -98,7 +100,7 @@ describe Ldpath::Transform do
       selector = actual.first.selector
       expect(selector).to be_a_kind_of Ldpath::RecursivePathSelector
       expect(selector.property.property).to eq RDF::URI.new("info:a")
-      expect(selector.repeat).to eq 0..Ldpath::Transform::Infinity
+      expect(selector.repeat).to eq 0..Ldpath::Transform::INFINITY
     end
 
     it "is a 1-to-infinity matcher" do
@@ -107,7 +109,7 @@ describe Ldpath::Transform do
       selector = actual.first.selector
       expect(selector).to be_a_kind_of Ldpath::RecursivePathSelector
       expect(selector.property.property).to eq RDF::URI.new("info:a")
-      expect(selector.repeat).to eq 1..Ldpath::Transform::Infinity
+      expect(selector.repeat).to eq 1..Ldpath::Transform::INFINITY
     end
 
     it "is a 0 to 5 matcher" do
@@ -134,7 +136,7 @@ describe Ldpath::Transform do
       selector = actual.first.selector
       expect(selector).to be_a_kind_of Ldpath::RecursivePathSelector
       expect(selector.property.property).to eq RDF::URI.new("info:a")
-      expect(selector.repeat).to eq 2..Ldpath::Transform::Infinity
+      expect(selector.repeat).to eq 2..Ldpath::Transform::INFINITY
     end
   end
 

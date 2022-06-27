@@ -1,4 +1,6 @@
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'ldpath'
 require 'rdf/reasoner'
 require 'webmock/rspec'
@@ -6,7 +8,6 @@ require 'byebug' unless ENV['TRAVIS']
 
 RDF::Reasoner.apply(:rdfs)
 RDF::Reasoner.apply(:owl)
-
 
 def webmock_fixture(fixture)
   File.new File.expand_path(File.join("../fixtures", fixture), __FILE__)

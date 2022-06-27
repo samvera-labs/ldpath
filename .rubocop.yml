@@ -1,8 +1,47 @@
+inherit_gem:
+  bixby: bixby_default.yml
+
 inherit_from:
   - .rubocop_todo.yml
 
-Metrics/LineLength:
+Layout/LineLength:
   Max: 140
+  Exclude:
+    - 'lib/ldpath/parser.rb'
+
+Metrics/AbcSize:
+  Exclude:
+    - 'lib/ldpath/selectors.rb'
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'lib/ldpath/selectors.rb'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/ldpath_parser_spec.rb'
+    - 'spec/ldpath_program_spec.rb'
+    - 'spec/ldpath_transform_spec.rb'
+    - 'spec/lib/functions/list_spec.rb'
+
+Metrics/ClassLength:
+  Exclude:
+    - 'lib/ldpath/parser.rb'
+    - 'lib/ldpath/transform.rb'
+
+Metrics/MethodLength:
+  Exclude:
+    - 'lib/ldpath/field_mapping.rb'
+    - 'lib/ldpath/selectors.rb'
+    - 'lib/ldpath/transform.rb'
+
+Metrics/ModuleLength:
+  Exclude:
+    - 'lib/ldpath/functions.rb'
+
+Metrics/ParameterLists:
+  Exclude:
+    - 'lib/ldpath/functions.rb'
 
 Style/WordArray:
   Enabled: false

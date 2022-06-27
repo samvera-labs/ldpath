@@ -1,5 +1,6 @@
-# coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
+# frozen_string_literal: true
+
+lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'ldpath/version'
 
@@ -16,18 +17,19 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
+  spec.required_ruby_version = ">= 2.7.5"
 
   spec.add_dependency "nokogiri", "~> 1.8"
   spec.add_dependency "parslet"
   spec.add_dependency "rdf", '~> 3.0'
   spec.add_dependency 'rdf-vocab', '~> 3.0'
 
-  # spec.add_development_dependency "bixby", "~> 1.0.0"
+  spec.add_development_dependency "bixby", "~> 5.0"
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "rake"
+  spec.add_development_dependency "rdf-reasoner"
   spec.add_development_dependency "rspec"
   spec.add_development_dependency 'rspec_junit_formatter'
-  spec.add_development_dependency "rdf-reasoner"
-  spec.add_development_dependency "rubocop"
+  spec.add_development_dependency "rubocop-rake"
   spec.add_development_dependency "webmock"
 end

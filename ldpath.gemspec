@@ -31,5 +31,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec"
   spec.add_development_dependency 'rspec_junit_formatter'
   spec.add_development_dependency "rubocop-rake"
+  spec.add_development_dependency "simplecov"
   spec.add_development_dependency "webmock"
 end
